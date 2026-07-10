@@ -122,13 +122,36 @@ namespace RestaurantManagementSystem.Controllers
 
             try
             {
+                // Cascade delete associated order items in code to avoid Restrict violation
+                var referencingOrderItems = await _context.OrderItems.Where(oi => oi.MenuItemId == id).ToListAsync();
+                if (referencingOrderItems.Any())
+                {
+                    var orderIds = referencingOrderItems.Select(oi => oi.OrderId).Distinct().ToList();
+                    _context.OrderItems.RemoveRange(referencingOrderItems);
+
+                    // Clean up blank orders/payments if the order has no other items left
+                    foreach (var orderId in orderIds)
+                    {
+                        var otherItemsCount = await _context.OrderItems.CountAsync(oi => oi.OrderId == orderId && oi.MenuItemId != id);
+                        if (otherItemsCount == 0)
+                        {
+                            var payments = await _context.Payments.Where(p => p.OrderId == orderId).ToListAsync();
+                            if (payments.Any())
+                            {
+                                _context.Payments.RemoveRange(payments);
+                            }
+                            var order = await _context.Orders.FindAsync(orderId);
+                            if (order != null)
+                            {
+                                _context.Orders.Remove(order);
+                            }
+                        }
+                    }
+                }
+
                 _context.MenuItems.Remove(menuItem);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = $"Menu item '{menuItem.Name}' deleted successfully!";
-            }
-            catch (DbUpdateException)
-            {
-                TempData["ErrorMessage"] = $"Cannot delete '{menuItem.Name}' because it has been ordered/referenced in past transactions. You can disable/toggle its availability instead.";
             }
             catch (Exception)
             {
