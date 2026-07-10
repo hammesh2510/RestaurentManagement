@@ -120,9 +120,21 @@ namespace RestaurantManagementSystem.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            _context.MenuItems.Remove(menuItem);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = $"Menu item '{menuItem.Name}' deleted successfully!";
+            try
+            {
+                _context.MenuItems.Remove(menuItem);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = $"Menu item '{menuItem.Name}' deleted successfully!";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["ErrorMessage"] = $"Cannot delete '{menuItem.Name}' because it has been ordered/referenced in past transactions. You can disable/toggle its availability instead.";
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "An error occurred while deleting the menu item.";
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
