@@ -1,4 +1,4 @@
-@model RestaurantManagementSystem.ViewModels.LoginViewModel
+@model RestaurantManagementSystem.ViewModels.RegisterViewModel
 @{
     Layout = null;
 }
@@ -8,7 +8,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - Restaurant Management System</title>
+    <title>Register - Restaurant Management System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     
@@ -22,13 +22,14 @@
             font-family: 'Inter', sans-serif;
             color: #f8fafc;
             overflow-x: hidden;
+            padding: 40px 0;
         }
 
         .login-container {
             position: relative;
             z-index: 10;
             width: 100%;
-            max-width: 450px;
+            max-width: 500px;
             padding: 15px;
         }
 
@@ -68,7 +69,7 @@
             letter-spacing: 2px;
         }
 
-        .form-control {
+        .form-control, .form-select {
             background: rgba(15, 23, 42, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #f8fafc;
@@ -77,10 +78,15 @@
             transition: all 0.2s ease;
         }
 
-        .form-control:focus {
+        .form-control:focus, .form-select:focus {
             background: rgba(15, 23, 42, 0.85);
             border-color: #818cf8;
             box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25);
+            color: #f8fafc;
+        }
+
+        .form-select option {
+            background: #1e293b;
             color: #f8fafc;
         }
 
@@ -89,6 +95,7 @@
             font-size: 0.875rem;
             font-weight: 500;
             margin-left: 2px;
+            margin-bottom: 6px;
         }
 
         .btn-primary {
@@ -107,24 +114,10 @@
             transform: translateY(-1px);
         }
 
-        .btn-primary:active {
-            transform: translateY(1px);
-        }
-
-        .form-check-input {
-            background-color: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .form-check-input:checked {
-            background-color: #6366f1;
-            border-color: #6366f1;
-        }
-
         .text-muted-custom {
             color: #94a3b8;
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             transition: color 0.2s ease;
         }
 
@@ -152,13 +145,16 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #94a3b8;
             border-radius: 10px 0 0 10px;
+            width: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .input-with-icon {
             border-radius: 0 10px 10px 0 !important;
         }
 
-        /* Decorative background pulses */
         .glow-sphere-1 {
             position: absolute;
             top: -10%;
@@ -193,13 +189,22 @@
             <div class="brand-logo">
                 <i class="fa-solid fa-utensils me-2"></i>RESTAURANT
             </div>
-            <div class="brand-subtitle">Management System</div>
+            <div class="brand-subtitle">Create Account</div>
 
-            <form asp-action="Login" asp-controller="Account" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+            <form asp-action="Register" asp-controller="Account" method="post">
                 @if (!ViewData.ModelState.IsValid)
                 {
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <div asp-validation-summary="All" class="text-danger mb-3"></div>
                 }
+
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text input-group-text-custom"><i class="fa-solid fa-user"></i></span>
+                        <input asp-for="FullName" class="form-control input-with-icon" placeholder="Firstname Lastname" autocomplete="name" />
+                    </div>
+                    <span asp-validation-for="FullName" class="text-danger small mt-1 d-block" style="color: #fca5a5 !important;"></span>
+                </div>
 
                 <div class="mb-3">
                     <label asp-for="Email" class="form-label"></label>
@@ -210,37 +215,56 @@
                     <span asp-validation-for="Email" class="text-danger small mt-1 d-block" style="color: #fca5a5 !important;"></span>
                 </div>
 
-                <div class="mb-4">
+                <div class="mb-3">
+                    <label asp-for="Phone" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text input-group-text-custom"><i class="fa-solid fa-phone"></i></span>
+                        <input asp-for="Phone" class="form-control input-with-icon" placeholder="+1234567890" autocomplete="tel" />
+                    </div>
+                    <span asp-validation-for="Phone" class="text-danger small mt-1 d-block" style="color: #fca5a5 !important;"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Role" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text input-group-text-custom"><i class="fa-solid fa-briefcase"></i></span>
+                        <select asp-for="Role" class="form-select input-with-icon">
+                            <option value="">-- Choose Position --</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Waiter">Waiter</option>
+                            <option value="Chef">Chef</option>
+                            <option value="Cashier">Cashier</option>
+                        </select>
+                    </div>
+                    <span asp-validation-for="Role" class="text-danger small mt-1 d-block" style="color: #fca5a5 !important;"></span>
+                </div>
+
+                <div class="mb-3">
                     <label asp-for="Password" class="form-label"></label>
                     <div class="input-group">
                         <span class="input-group-text input-group-text-custom"><i class="fa-solid fa-lock"></i></span>
-                        <input asp-for="Password" class="form-control input-with-icon" placeholder="••••••••" autocomplete="current-password" />
+                        <input asp-for="Password" class="form-control input-with-icon" placeholder="••••••••" autocomplete="new-password" />
                     </div>
                     <span asp-validation-for="Password" class="text-danger small mt-1 d-block" style="color: #fca5a5 !important;"></span>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="form-check">
-                        <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
-                        <label asp-for="RememberMe" class="form-check-label text-muted-custom"></label>
+                <div class="mb-4">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text input-group-text-custom"><i class="fa-solid fa-lock"></i></span>
+                        <input asp-for="ConfirmPassword" class="form-control input-with-icon" placeholder="••••••••" autocomplete="new-password" />
                     </div>
-                    <a href="#" class="text-muted-custom">Forgot Password?</a>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small mt-1 d-block" style="color: #fca5a5 !important;"></span>
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100 mb-3">
-                    <i class="fa-solid fa-sign-in-alt me-2"></i>Sign In
+                    <i class="fa-solid fa-user-plus me-2"></i>Sign Up
                 </button>
             </form>
-            
+
             <div class="text-center mt-3">
-                <span class="text-muted" style="font-size: 0.9rem;">New Restaurant? </span>
-                <a asp-action="Register" asp-controller="Account" class="text-muted-custom fw-semibold">Sign Up</a>
-            </div>
-            
-            <div class="text-center mt-4">
-                <span class="text-muted text-secondary" style="font-size: 0.8rem;">
-                    Default Manager: manager@restaurant.com / Manager@123
-                </span>
+                <span class="text-muted" style="font-size: 0.9rem;">Already have an account? </span>
+                <a asp-action="Login" asp-controller="Account" class="text-muted-custom fw-semibold">Sign In</a>
             </div>
         </div>
     </div>

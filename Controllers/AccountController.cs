@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using RestaurantManagementSystem.Data;
 using RestaurantManagementSystem.Models;
 using RestaurantManagementSystem.ViewModels;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RestaurantManagementSystem.Controllers
@@ -10,13 +13,19 @@ namespace RestaurantManagementSystem.Controllers
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ApplicationDbContext _context;
 
         public AccountController(
             SignInManager<ApplicationUser> signInManager,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
+            ApplicationDbContext context)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _roleManager = roleManager;
+            _context = context;
         }
 
         [HttpGet]
@@ -85,6 +94,87 @@ namespace RestaurantManagementSystem.Controllers
         public IActionResult AccessDenied()
         {
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            if (_signInManager.IsSignedIn(User))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var existingUser = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("Email", "Email address is already in use.");
+                    return View(model);
+                }
+
+                string[] validRoles = { "Manager", "Cashier", "Waiter", "Chef" };
+                if (!validRoles.Contains(model.Role))
+                {
+                    ModelState.AddModelError("Role", "Invalid role selected.");
+                    return View(model);
+                }
+
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    FullName = model.FullName,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    if (!await _roleManager.RoleExistsAsync(model.Role))
+                    {
+                        await _roleManager.CreateAsync(new IdentityRole(model.Role));
+                    }
+                    await _userManager.AddToRoleAsync(user, model.Role);
+
+                    var names = model.FullName.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                    var firstName = names.Length > 0 ? names[0] : model.FullName;
+                    var lastName = names.Length > 1 ? names[1] : "Employee";
+
+                    var employee = new Employee
+                    {
+                        FirstName = firstName,
+                        LastName = lastName,
+                        Email = model.Email,
+                        Phone = model.Phone,
+                        Salary = 0.00m,
+                        HireDate = DateTime.UtcNow,
+                        IsActive = true,
+                        UserId = user.Id
+                    };
+
+                    _context.Employees.Add(employee);
+                    await _context.SaveChangesAsync();
+
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    TempData["SuccessMessage"] = $"Registration successful! Welcome, {model.FullName}.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+
+            return View(model);
         }
     }
 }
