@@ -1,0 +1,404 @@
+@{
+    ViewData["Title"] = "POS Terminal";
+    var categories = ViewBag.Categories as List<RestaurantManagementSystem.Models.Category>;
+    var menuItems = ViewBag.MenuItems as List<RestaurantManagementSystem.Models.MenuItem>;
+    var tables = ViewBag.Tables as List<RestaurantManagementSystem.Models.RestaurantTable>;
+    var selectedTableId = ViewBag.SelectedTableId as int?;
+}
+
+<div class="row g-4" style="height: calc(100vh - 120px);">
+    <!-- Left Hand Side: Menu Board (70% width on desktop) -->
+    <div class="col-lg-8 d-flex flex-column h-100">
+        <!-- Search and Categorization filters -->
+        <div class="card border-0 shadow-sm p-3 mb-3" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="row g-3 align-items-center">
+                <!-- Search bar -->
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                        <input type="text" id="pos-search" class="form-control bg-light border-0" placeholder="Search menu items..." style="border-radius: 0 8px 8px 0;" />
+                    </div>
+                </div>
+                <!-- Veg only filter -->
+                <div class="col-md-3">
+                    <div class="form-check form-switch mt-1">
+                        <input class="form-check-input" type="checkbox" id="veg-switch" />
+                        <label class="form-check-label fw-semibold text-slate-700" for="veg-switch">🌱 Veg Only</label>
+                    </div>
+                </div>
+                <!-- Categories scroller -->
+                <div class="col-md-4">
+                    <select id="category-filter" class="form-select border-0 bg-light fw-600 text-slate-700" style="border-radius: 8px;">
+                        <option value="all">All Categories</option>
+                        @foreach (var cat in categories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Item Cards Grid scrollable box -->
+        <div class="flex-grow-1 overflow-y-auto pe-2" style="max-height: calc(100vh - 220px);">
+            <div class="row g-3" id="menu-grid">
+                @foreach (var item in menuItems)
+                {
+                    string vegBadgeColor = item.IsVeg ? "border-success text-success" : "border-danger text-danger";
+                    string vegBadgeText = item.IsVeg ? "VEG" : "NON-VEG";
+
+                    <div class="col-sm-6 col-md-4 menu-item-card" 
+                         data-id="@item.Id" 
+                         data-name="@item.Name" 
+                         data-price="@item.Price" 
+                         data-category="@item.CategoryId"
+                         data-isveg="@(item.IsVeg ? "true" : "false")">
+                        <div class="card border border-light h-100 shadow-hover p-2.5 d-flex flex-column justify-content-between position-relative" style="border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; background-color: #ffffff;">
+                            
+                            <!-- Recommended badge -->
+                            @if (item.IsRecommended)
+                            {
+                                <span class="position-absolute badge bg-warning text-dark px-2 py-1" style="top: 8px; right: 8px; z-index: 5; font-size: 0.68rem; border-radius: 4px; font-weight: 700;">
+                                    ⭐ REC
+                                </span>
+                            }
+
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="badge border @vegBadgeColor px-2 py-0.5" style="font-size: 0.65rem; font-weight: 800;">
+                                        @vegBadgeText
+                                    </span>
+                                    <span class="fw-bold text-indigo" style="font-size: 1.05rem;">$@item.Price.ToString("F2")</span>
+                                </div>
+                                <h6 class="fw-bold text-slate-800 mb-1">@item.Name</h6>
+                                <p class="text-muted small text-truncate-2 mb-3" style="font-size: 0.75rem; min-height: 32px;">@item.Description</p>
+                            </div>
+
+                            <button onclick="addToCart(@item.Id, '@item.Name', @item.Price)" class="btn btn-primary btn-sm py-1.5 w-100 mt-auto" style="border-radius: 8px; font-weight: 600;">
+                                <i class="fa-solid fa-plus me-1"></i>Add to Order
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <div id="no-items-message" class="text-center py-5 d-none">
+                <i class="fa-regular fa-face-frown fa-4x text-light-custom mb-3" style="color: #cbd5e1;"></i>
+                <h5 class="fw-semibold text-slate-500">No items match your filters.</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Hand Side: Active Cart Board (30% width) -->
+    <div class="col-lg-4 d-flex flex-column h-100" style="max-height: calc(100vh - 120px);">
+        <div class="card border-0 shadow-sm d-flex flex-column h-100" style="border-radius: 15px; background-color: #ffffff; overflow: hidden;">
+            <div class="card-header bg-slate-900 text-white p-3 border-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold m-0"><i class="fa-solid fa-receipt me-2 text-warning"></i>Active Invoice</h5>
+                    <button class="btn btn-sm btn-outline-light border-0" onclick="clearCart()" title="Clear Current List">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Order Core Options: Table, Type, Notes -->
+            <div class="p-3 border-bottom bg-light">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="small fw-semibold text-slate-600 mb-1">Order Type</label>
+                        <select id="order-type" class="form-select form-select-sm" style="border-radius: 6px;">
+                            <option value="0">Dine-In</option>
+                            <option value="1">Takeaway</option>
+                            <option value="2">Delivery</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-6" id="table-select-col">
+                        <label class="small fw-semibold text-slate-600 mb-1">Select Table</label>
+                        <select id="table-id" class="form-select form-select-sm" style="border-radius: 6px;">
+                            <option value="">-- Choose --</option>
+                            @foreach (var table in tables)
+                            {
+                                bool isSelected = table.Id == selectedTableId;
+                                string tableStatusText = table.Status == RestaurantManagementSystem.Models.TableStatus.Available ? "" : $" ({table.Status})";
+                                <option value="@table.Id" selected="@isSelected">@table.TableNumber @tableStatusText</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="small fw-semibold text-slate-600 mb-1">Kitchen Notes</label>
+                    <input type="text" id="order-notes" class="form-control form-control-sm" placeholder="e.g. No salt, extra sauce" style="border-radius: 6px;" />
+                </div>
+            </div>
+
+            <!-- Items List -->
+            <div class="flex-grow-1 overflow-y-auto p-3" id="cart-items-wrapper" style="min-height: 180px;">
+                <div id="empty-cart-message" class="text-center py-5">
+                    <i class="fa-solid fa-cart-shopping fa-3x text-light-custom" style="color: #e2e8f0; margin-bottom: 12px;"></i>
+                    <p class="text-muted small">Cart is empty.<br/>Select menu items to build bill.</p>
+                </div>
+                
+                <table class="table table-borderless align-middle d-none" id="cart-table">
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Pricing Summary and Action -->
+            <div class="p-3 bg-light border-top">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted small">Subtotal</span>
+                    <span class="fw-semibold text-slate-800" id="summary-subtotal">$0.00</span>
+                </div>
+                <div class="d-flex justify-content-between mb-3">
+                    <span class="text-muted small">Tax (10.0%)</span>
+                    <span class="fw-semibold text-slate-800" id="summary-tax">$0.00</span>
+                </div>
+                <div class="d-flex justify-content-between border-top pt-2 mb-3">
+                    <span class="fw-bold">Grand Total</span>
+                    <span class="fw-bold text-indigo" id="summary-total" style="font-size: 1.15rem;">$0.00</span>
+                </div>
+
+                <button class="btn btn-primary w-100 py-2.5 fw-bold" id="place-order-btn" onclick="submitOrder()" disabled style="border-radius: 10px;">
+                    <i class="fa-solid fa-fire me-2"></i>Send to Kitchen
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let cart = [];
+
+        $(document).ready(function() {
+            // Synchronize Order Type changes hiding tables
+            $('#order-type').on('change', function() {
+                if ($(this).val() === '0') {
+                    $('#table-select-col').show();
+                } else {
+                    $('#table-select-col').hide();
+                    $('#table-id').val('');
+                }
+            });
+
+            // Live search feature
+            $('#pos-search').on('input', filterMenu);
+            $('#veg-switch').on('change', filterMenu);
+            $('#category-filter').on('change', filterMenu);
+        });
+
+        function filterMenu() {
+            let search = $('#pos-search').val().toLowerCase().trim();
+            let isVegOnly = $('#veg-switch').is(':checked');
+            let categoryId = $('#category-filter').val();
+
+            let visibleCount = 0;
+
+            $('.menu-item-card').each(function() {
+                let card = $(this);
+                let name = card.data('name').toLowerCase();
+                let category = card.data('category').toString();
+                let isVeg = card.data('isveg') === true;
+
+                let matchesSearch = name.includes(search);
+                let matchesVeg = !isVegOnly || isVeg;
+                let matchesCategory = categoryId === 'all' || category === categoryId;
+
+                if (matchesSearch && matchesVeg && matchesCategory) {
+                    card.removeClass('d-none');
+                    visibleCount++;
+                } else {
+                    card.addClass('d-none');
+                }
+            });
+
+            if (visibleCount === 0) {
+                $('#no-items-message').removeClass('d-none');
+            } else {
+                $('#no-items-message').addClass('d-none');
+            }
+        }
+
+        function addToCart(id, name, price) {
+            let existing = cart.find(x => x.menuItemId === id);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({
+                    menuItemId: id,
+                    name: name,
+                    price: parseFloat(price),
+                    quantity: 1,
+                    notes: ''
+                });
+            }
+            renderCart();
+        }
+
+        function removeOneFromCart(id) {
+            let existing = cart.find(x => x.menuItemId === id);
+            if (existing) {
+                existing.quantity--;
+                if (existing.quantity <= 0) {
+                    cart = cart.filter(x => x.menuItemId !== id);
+                }
+            }
+            renderCart();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(x => x.menuItemId !== id);
+            renderCart();
+        }
+
+        function clearCart() {
+            if (confirm("Clear items from current order?")) {
+                cart = [];
+                renderCart();
+            }
+        }
+
+        function renderCart() {
+            let tbody = $('#cart-table tbody');
+            tbody.empty();
+
+            if (cart.length === 0) {
+                $('#empty-cart-message').removeClass('d-none');
+                $('#cart-table').addClass('d-none');
+                $('#place-order-btn').attr('disabled', true);
+                
+                $('#summary-subtotal').text('$0.00');
+                $('#summary-tax').text('$0.00');
+                $('#summary-total').text('$0.00');
+                return;
+            }
+
+            $('#empty-cart-message').addClass('d-none');
+            $('#cart-table').removeClass('d-none');
+            $('#place-order-btn').attr('disabled', false);
+
+            let subtotal = 0;
+
+            cart.forEach(item => {
+                let itemTotal = item.price * item.quantity;
+                subtotal += itemTotal;
+
+                let tr = `
+                    <tr class="border-bottom border-light">
+                        <td style="width: 55%; font-size: 0.85rem;">
+                            <div class="fw-bold text-slate-800">${item.name}</div>
+                            <div class="text-muted small">$${item.price.toFixed(2)} each</div>
+                            <input type="text" class="form-control form-control-xs mt-1 w-100 text-muted" 
+                                   placeholder="Add note..." value="${item.notes}" 
+                                   style="font-size: 0.7rem; padding: 2px 4px; border-radius: 4px;" 
+                                   onchange="updateItemNote(${item.menuItemId}, this.value)" />
+                        </td>
+                        <td style="width: 30%;" class="text-nowrap">
+                            <div class="d-flex align-items-center gap-1.5 justify-content-center">
+                                <button class="btn btn-xs btn-outline-secondary p-1" onclick="removeOneFromCart(${item.menuItemId})" style="border-radius: 4px; width: 22px; height: 22px; padding: 0 !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-minus" style="font-size: 0.65rem;"></i></button>
+                                <span class="fw-bold px-1.5" style="font-size: 0.85rem;">${item.quantity}</span>
+                                <button class="btn btn-xs btn-outline-secondary p-1" onclick="addToCart(${item.menuItemId}, '${item.name}', ${item.price})" style="border-radius: 4px; width: 22px; height: 22px; padding: 0 !important; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-plus" style="font-size: 0.65rem;"></i></button>
+                            </div>
+                        </td>
+                        <td style="width: 15%; font-size: 0.85rem;" class="text-end fw-bold text-slate-700">
+                            $${itemTotal.toFixed(2)}
+                            <button class="btn btn-xs btn-link text-danger p-0 mt-1 d-block ms-auto" onclick="removeFromCart(${item.menuItemId})" style="font-size: 0.72rem; text-decoration: none;">Remove</button>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(tr);
+            });
+
+            let tax = Math.round(subtotal * 0.10 * 100) / 100;
+            let total = subtotal + tax;
+
+            $('#summary-subtotal').text('$' + subtotal.toFixed(2));
+            $('#summary-tax').text('$' + tax.toFixed(2));
+            $('#summary-total').text('$' + total.toFixed(2));
+        }
+
+        function updateItemNote(id, noteValue) {
+            let item = cart.find(x => x.menuItemId === id);
+            if (item) {
+                item.notes = noteValue;
+            }
+        }
+
+        function submitOrder() {
+            let orderType = parseInt($('#order-type').val());
+            let tableId = $('#table-id').val();
+            let notes = $('#order-notes').val();
+
+            if (orderType === 0 && !tableId) {
+                alert("Please select a physical table for Dine-In orders.");
+                return;
+            }
+
+            let payload = {
+                TableId: tableId ? parseInt(tableId) : null,
+                OrderType: orderType,
+                OrderNotes: notes,
+                Items: cart.map(x => ({
+                    MenuItemId: x.menuItemId,
+                    Quantity: x.quantity,
+                    Notes: x.notes
+                }))
+            };
+
+            showSpinner();
+
+            $.ajax({
+                url: '/Order/PlaceOrder',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                headers: {
+                    // Send Request Verification token if needed (handled in controller)
+                },
+                success: function (res) {
+                    hideSpinner();
+                    if (res.success) {
+                        alert(`Order ${res.orderNumber} placed successfully!`);
+                        location.href = '/Order/OrderBoard';
+                    } else {
+                        alert(res.message || "Failed to submit order.");
+                    }
+                },
+                error: function (xhr) {
+                    hideSpinner();
+                    alert("A communication error occurred while creating order.");
+                }
+            });
+        }
+    </script>
+}
+
+<style>
+    .menu-item-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .shadow-hover:hover {
+        box-shadow: 0 6px 12px rgba(15, 23, 42, 0.06) !important;
+        border-color: rgba(99, 102, 241, 0.25) !important;
+    }
+
+    .form-control-xs {
+        min-height: 20px;
+        padding: 2px 6px;
+    }
+
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Small gap adjustment */
+    .gap-1.5 {
+        gap: 0.35rem !important;
+    }
+</style>

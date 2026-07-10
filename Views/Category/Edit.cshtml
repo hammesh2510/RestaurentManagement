@@ -1,0 +1,78 @@
+@model RestaurantManagementSystem.ViewModels.CategoryViewModel
+@{
+    ViewData["Title"] = "Edit Category";
+}
+
+<!-- Page Header and Actions -->
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Category" asp-action="Index">Categories</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit Category</li>
+            </ol>
+        </nav>
+        <h1 class="h3 m-0 fw-bold text-slate-800"><i class="fa-solid fa-pen-to-square me-2 text-indigo"></i>Edit Category</h1>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-0">
+                <div class="fw-bold text-slate-700" style="font-size: 1.1rem;">Update Category Details</div>
+            </div>
+            
+            <div class="card-body p-4 pt-1">
+                <form asp-action="Edit" method="post" id="editCategoryForm">
+                    @Html.AntiForgeryToken()
+                    
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <!-- Category Name Input -->
+                    <div class="mb-4">
+                        <label asp-for="Name" class="form-label fw-semibold text-slate-700"></label>
+                        <input asp-for="Name" class="form-control py-2" style="border-radius: 8px;" />
+                        <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <!-- Description Input -->
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label fw-semibold text-slate-700"></label>
+                        <textarea asp-for="Description" class="form-control" rows="4" style="border-radius: 8px;"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <!-- IsActive Status Switch -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch p-0 ps-5">
+                            <input asp-for="IsActive" class="form-check-input style-switch" type="checkbox" role="switch" style="cursor: pointer; transform: scale(1.15);" />
+                            <label asp-for="IsActive" class="form-check-label ms-2 fw-semibold text-slate-700">Enable Category</label>
+                        </div>
+                        <span class="text-muted small d-block ms-5 mt-1" style="font-size: 0.8rem;">
+                            Disabled categories hide associated menu items from active ordering boards.
+                        </span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-end gap-3 mt-5 pt-3 border-top">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+                            <i class="fa-solid fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary px-4 py-2" style="border-radius: 8px;">
+                            <i class="fa-solid fa-save me-2"></i>Update Category
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}

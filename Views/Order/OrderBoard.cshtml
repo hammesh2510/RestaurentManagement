@@ -1,0 +1,133 @@
+@model IEnumerable<RestaurantManagementSystem.Models.Order>
+@{
+    ViewData["Title"] = "Order Workspace Board";
+    
+    // Group active orders by status
+    var pending = Model.Where(o => o.Status == RestaurantManagementSystem.Models.OrderStatus.Pending).ToList();
+    var preparing = Model.Where(o => o.Status == RestaurantManagementSystem.Models.OrderStatus.Preparing).ToList();
+    var ready = Model.Where(o => o.Status == RestaurantManagementSystem.Models.OrderStatus.Ready).ToList();
+    var served = Model.Where(o => o.Status == RestaurantManagementSystem.Models.OrderStatus.Served).ToList();
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h1 class="h3 m-0 fw-bold text-slate-800"><i class="fa-solid fa-receipt me-2 text-indigo"></i>Order Workspace Board</h1>
+        <p class="text-muted m-0">Live billing and status tracker for kitchen & waiters.</p>
+    </div>
+    <div class="col-auto">
+        <a asp-action="WaiterPOS" class="btn btn-primary px-4 py-2" style="border-radius: 8px;">
+            <i class="fa-solid fa-cart-plus me-2"></i>Create New Order
+        </a>
+    </div>
+</div>
+
+<div class="row g-3" style="min-height: calc(100vh - 220px);">
+    <!-- Column 1: Pending Requests -->
+    <div class="col-lg-3">
+        <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 12px; border-top: 4px solid #64748b !important;">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-slate-700 m-0">📥 PENDING REQUESTS</h6>
+                <span class="badge bg-secondary rounded-pill font-weight-700">@pending.Count</span>
+            </div>
+            <div class="card-body p-2 d-flex flex-column gap-3 overflow-y-auto" style="max-height: calc(100vh - 280px); min-height: 200px;">
+                @foreach (var order in pending)
+                {
+                    @await Html.PartialAsync("_OrderCard", order)
+                }
+                @if (!pending.Any())
+                {
+                    <div class="text-center py-4 text-muted small">No pending orders.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Column 2: In Kitchen Preparing -->
+    <div class="col-lg-3">
+        <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 12px; border-top: 4px solid #f97316 !important;">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-slate-700 m-0">🔥 IN PREPARATION</h6>
+                <span class="badge bg-warning text-dark rounded-pill font-weight-700">@preparing.Count</span>
+            </div>
+            <div class="card-body p-2 d-flex flex-column gap-3 overflow-y-auto" style="max-height: calc(100vh - 280px); min-height: 200px;">
+                @foreach (var order in preparing)
+                {
+                    @await Html.PartialAsync("_OrderCard", order)
+                }
+                @if (!preparing.Any())
+                {
+                    <div class="text-center py-4 text-muted small">Kitchen queue is empty.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Column 3: Food Ready -->
+    <div class="col-lg-3">
+        <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 12px; border-top: 4px solid #10b981 !important;">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-slate-700 m-0">✅ MEAL READY</h6>
+                <span class="badge bg-success rounded-pill font-weight-700">@ready.Count</span>
+            </div>
+            <div class="card-body p-2 d-flex flex-column gap-3 overflow-y-auto" style="max-height: calc(100vh - 280px); min-height: 200px;">
+                @foreach (var order in ready)
+                {
+                    @await Html.PartialAsync("_OrderCard", order)
+                }
+                @if (!ready.Any())
+                {
+                    <div class="text-center py-4 text-muted small">No items ready to serve.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Column 4: Food Served -->
+    <div class="col-lg-3">
+        <div class="card border-0 shadow-sm h-100 bg-white" style="border-radius: 12px; border-top: 4px solid #6366f1 !important;">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-slate-700 m-0">🍽️ SERVED TABLES</h6>
+                <span class="badge bg-primary rounded-pill font-weight-700">@served.Count</span>
+            </div>
+            <div class="card-body p-2 d-flex flex-column gap-3 overflow-y-auto" style="max-height: calc(100vh - 280px); min-height: 200px;">
+                @foreach (var order in served)
+                {
+                    @await Html.PartialAsync("_OrderCard", order)
+                }
+                @if (!served.Any())
+                {
+                    <div class="text-center py-4 text-muted small">No tables are currently active.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function advanceStatus(orderId, newStatus) {
+            showSpinner();
+            $.ajax({
+                url: '/Order/UpdateStatus',
+                type: 'POST',
+                data: {
+                    id: orderId,
+                    status: newStatus,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (res) {
+                    hideSpinner();
+                    if (res.success) {
+                        location.reload();
+                    } else {
+                        alert(res.message || "Failed to update order status.");
+                    }
+                },
+                error: function () {
+                    hideSpinner();
+                    alert("A network transmission error occurred.");
+                }
+            });
+        }
+    </script>
+}

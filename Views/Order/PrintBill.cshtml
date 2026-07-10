@@ -1,0 +1,172 @@
+@model RestaurantManagementSystem.Models.Order
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Receipt - @Model.OrderNumber</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+    <style>
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Courier New', Courier, monospace;
+            color: #000;
+        }
+
+        .receipt-container {
+            background-color: #fff;
+            max-width: 380px;
+            margin: 20px auto;
+            padding: 25px 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .receipt-divider {
+            border-top: 1px dashed #000;
+            margin: 12px 0;
+        }
+
+        .item-row {
+            margin-bottom: 8px;
+        }
+
+        .item-name {
+            font-weight: bold;
+        }
+
+        /* Print styles */
+        @@media print {
+            body {
+                background-color: #fff;
+                margin: 0;
+            }
+            .receipt-container {
+                box-shadow: none;
+                margin: 0 auto;
+                max-width: 100%;
+                padding: 10px;
+                border-radius: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container text-center no-print my-4">
+        <button onclick="window.print()" class="btn btn-primary px-4 py-2 me-2">
+            <i class="fa-solid fa-print"></i> Print Receipt
+        </button>
+        <button onclick="window.close()" class="btn btn-outline-secondary px-4 py-2">
+            Close Tab
+        </button>
+    </div>
+
+    <div class="receipt-container">
+        <!-- Header -->
+        <div class="receipt-header">
+            <h4 class="fw-bold mb-1">RESTAURANT RMS</h4>
+            <p class="small text-muted mb-0">123 Culinary Boulevard, Food Town<br/>Tel: (555) 019-2831</p>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <!-- Order Metadata -->
+        <div class="small">
+            <div class="row">
+                <div class="col-6"><strong>Bill No:</strong> @Model.OrderNumber</div>
+                <div class="col-6 text-end"><strong>Table:</strong> @(Model.Table != null ? Model.Table.TableNumber : "Takeaway")</div>
+            </div>
+            <div class="row mt-1">
+                <div class="col-6"><strong>Date:</strong> @Model.CreatedAt.ToString("MM/dd/yyyy HH:mm")</div>
+                <div class="col-6 text-end"><strong>Staff:</strong> @(Model.CreatedByUser?.FullName ?? "Staff")</div>
+            </div>
+            <div class="row mt-1">
+                <div class="col-12"><strong>Type:</strong> @Model.OrderType</div>
+            </div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <!-- Items Table -->
+        <div class="small">
+            <div class="row fw-bold mb-1">
+                <div class="col-7">Item Description</div>
+                <div class="col-2 text-center">Qty</div>
+                <div class="col-3 text-end">Total</div>
+            </div>
+            
+            @foreach (var item in Model.OrderItems)
+            {
+                var total = item.Price * item.Quantity;
+                <div class="row item-row">
+                    <div class="col-7">
+                        <span class="item-name">@item.MenuItem?.Name</span>
+                        @if (!string.IsNullOrEmpty(item.Notes))
+                        {
+                            <div class="text-muted small fs-7" style="font-size: 0.76rem;">* @item.Notes</div>
+                        }
+                    </div>
+                    <div class="col-2 text-center">@item.Quantity</div>
+                    <div class="col-3 text-end">$@total.ToString("F2")</div>
+                </div>
+            }
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <!-- Bill Totals -->
+        <div class="small">
+            <div class="row">
+                <div class="col-8 text-end text-muted">Sub Total:</div>
+                <div class="col-4 text-end">$@Model.SubTotal.ToString("F2")</div>
+            </div>
+            <div class="row mt-1">
+                <div class="col-8 text-end text-muted">Tax (10.0%):</div>
+                <div class="col-4 text-end">$@Model.TaxAmount.ToString("F2")</div>
+            </div>
+            @if (Model.DiscountAmount > 0)
+            {
+                <div class="row mt-1 text-danger">
+                    <div class="col-8 text-end">Discount Applied:</div>
+                    <div class="col-4 text-end">-$@Model.DiscountAmount.ToString("F2")</div>
+                </div>
+            }
+            <div class="row mt-2 fw-bold" style="font-size: 1.05rem;">
+                <div class="col-8 text-end">GRAND TOTAL:</div>
+                <div class="col-4 text-end">$@Model.GrandTotal.ToString("F2")</div>
+            </div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <!-- Footer greeting -->
+        <div class="receipt-header small mt-4">
+            <p class="mb-0 fw-bold">THANK YOU FOR DINING WITH US!</p>
+            <p class="text-muted mb-0">Follow us on Instagram: @@restaurant_rms</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        // Auto trigger print check
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

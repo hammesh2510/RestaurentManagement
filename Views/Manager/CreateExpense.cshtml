@@ -1,0 +1,70 @@
+@model RestaurantManagementSystem.Models.Expense
+@{
+    ViewData["Title"] = "Log operational Expense";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h1 class="h3 m-0 fw-bold text-slate-800"><i class="fa-solid fa-receipt me-2 text-indigo"></i>Log operational Expense</h1>
+        <p class="text-muted m-0">Add an operational cost record to the business general ledger.</p>
+    </div>
+    <div class="col-auto">
+        <a asp-action="Expenses" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+            <i class="fa-solid fa-arrow-left me-2"></i>Back to Ledger
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 col-lg-5">
+        <div class="card border-0 shadow-sm" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-body p-4">
+                <form asp-action="CreateExpense" method="post">
+                    @Html.AntiForgeryToken()
+                    
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="ExpenseName" class="form-label fw-semibold text-slate-700">Expense Title</label>
+                        <input asp-for="ExpenseName" class="form-control" placeholder="e.g. Electricity Bill May, Weekly Vegetable Stock" required />
+                        <span asp-validation-for="ExpenseName" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Amount" class="form-label fw-semibold text-slate-700"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input asp-for="Amount" type="number" step="0.01" min="0.01" class="form-control" placeholder="0.00" required />
+                        </div>
+                        <span asp-validation-for="Amount" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Category" class="form-label fw-semibold text-slate-700"></label>
+                        <select asp-for="Category" class="form-select form-control" required>
+                            <option value="Rent">Rent</option>
+                            <option value="Salaries">Salaries</option>
+                            <option value="Ingredients">Ingredients & Stock</option>
+                            <option value="Utilities">Utilities (Power, Water, Gas)</option>
+                            <option value="Marketing">Marketing / Advertising</option>
+                            <option value="General">Other / General</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label fw-semibold text-slate-700"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Optional notes..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary py-2.5 fw-semibold" style="border-radius: 8px;">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>Save Cost
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

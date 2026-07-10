@@ -1,0 +1,259 @@
+@{
+    ViewData["Title"] = "Manager Analytics Dashboard";
+    var recentOrders = ViewBag.RecentOrders as List<RestaurantManagementSystem.Models.Order>;
+    var recentExpenses = ViewBag.RecentExpenses as List<RestaurantManagementSystem.Models.Expense>;
+    var expensesByCategory = ViewBag.ExpensesByCategory as Dictionary<string, decimal>;
+    
+    decimal totalRev = (decimal)ViewBag.TotalRevenue;
+    decimal totalExp = (decimal)ViewBag.TotalExpenses;
+    decimal netProf = (decimal)ViewBag.NetProfit;
+    string profitClass = netProf >= 0 ? "text-success" : "text-danger";
+    string profitIcon = netProf >= 0 ? "fa-arrow-trend-up text-success" : "fa-arrow-trend-down text-danger";
+}
+
+<!-- Heading Row -->
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h1 class="h3 m-0 fw-bold text-slate-800"><i class="fa-solid fa-chart-pie me-2 text-indigo"></i>Manager Command Center</h1>
+        <p class="text-muted m-0">Real-time stats and profit metrics overview.</p>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle px-3 py-2 font-weight-500">
+            <i class="fa-solid fa-calendar-days me-1"></i>Period: Active Shift
+        </span>
+    </div>
+</div>
+
+<!-- Financial Info Cards -->
+<div class="row g-4 mb-4">
+    <!-- Revenue -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold text-uppercase">Total Revenue</h6>
+                    <h3 class="m-0 fw-bold text-dark">$@totalRev.ToString("N2")</h3>
+                    <span class="text-success small"><i class="fa-solid fa-wallet me-1"></i>All paid bills</span>
+                </div>
+                <div class="p-3 rounded-3 bg-success-subtle text-success">
+                    <i class="fa-solid fa-dollar-sign fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expenses -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold text-uppercase">Total Expenses</h6>
+                    <h3 class="m-0 fw-bold text-dark">$@totalExp.ToString("N2")</h3>
+                    <span class="text-danger small"><i class="fa-solid fa-cart-shopping me-1"></i>Stock & Operations</span>
+                </div>
+                <div class="p-3 rounded-3 bg-danger-subtle text-danger">
+                    <i class="fa-solid fa-receipt fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Net Profit -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold text-uppercase">Net Profit</h6>
+                    <h3 class="m-0 fw-bold @profitClass">$@netProf.ToString("N2")</h3>
+                    <span class="small"><i class="fa-solid @profitIcon me-1"></i>Revenue - Expenses</span>
+                </div>
+                <div class="p-3 rounded-3 bg-primary-subtle text-primary">
+                    <i class="fa-solid fa-piggy-bank fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Occupy index -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold text-uppercase">Table Occupancy</h6>
+                    <h3 class="m-0 fw-bold text-dark">@ViewBag.OccupiedTables / @ViewBag.TotalTables</h3>
+                    <span class="text-warning small"><i class="fa-solid fa-chair me-1"></i>@ViewBag.OccupancyRate% Occupied</span>
+                </div>
+                <div class="p-3 rounded-3 bg-warning-subtle text-warning">
+                    <i class="fa-solid fa-people-group fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Graphs and Analysis Row -->
+<div class="row g-4 mb-4">
+    <!-- Payment Method Distribution (Progress blocks) -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold text-slate-700 m-0"><i class="fa-solid fa-credit-card text-muted me-2"></i>Sales by Payment Method</h6>
+            </div>
+            <div class="card-body">
+                @{
+                    decimal cash = (decimal)ViewBag.CashSales;
+                    decimal card = (decimal)ViewBag.CardSales;
+                    decimal upi = (decimal)ViewBag.UpiSales;
+                    decimal totalSales = cash + card + upi;
+                    
+                    int cashPct = totalSales > 0 ? (int)(cash / totalSales * 100) : 0;
+                    int cardPct = totalSales > 0 ? (int)(card / totalSales * 100) : 0;
+                    int upiPct = totalSales > 0 ? (int)(upi / totalSales * 100) : 0;
+                }
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small fw-semibold text-slate-600"><i class="fa-solid fa-money-bill-wave text-success me-2"></i>Cash</span>
+                        <span class="small text-muted">$@cash.ToString("F2") (@cashPct%)</span>
+                    </div>
+                    <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress-bar bg-success" style="width: @cashPct%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small fw-semibold text-slate-600"><i class="fa-solid fa-credit-card text-primary me-2"></i>Credit / Debit Card</span>
+                        <span class="small text-muted">$@card.ToString("F2") (@cardPct%)</span>
+                    </div>
+                    <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress-bar bg-primary" style="width: @cardPct%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small fw-semibold text-slate-600"><i class="fa-solid fa-qrcode text-warning me-2"></i>UPI Apps</span>
+                        <span class="small text-muted">$@upi.ToString("F2") (@upiPct%)</span>
+                    </div>
+                    <div class="progress" style="height: 10px; border-radius: 5px;">
+                        <div class="progress-bar bg-warning" style="width: @upiPct%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expenses distribution (Bar chart simulation) -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="fw-bold text-slate-700 m-0"><i class="fa-solid fa-chart-column text-muted me-2"></i>Expense Breakdown</h6>
+            </div>
+            <div class="card-body">
+                @if (expensesByCategory != null && expensesByCategory.Any())
+                {
+                    decimal maxExpense = expensesByCategory.Max(x => x.Value);
+                    foreach (var exp in expensesByCategory)
+                    {
+                        int pct = maxExpense > 0 ? (int)(exp.Value / maxExpense * 100) : 0;
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="small fw-semibold text-slate-600">@exp.Key</span>
+                                <span class="small text-muted">$@exp.Value.ToString("F2")</span>
+                            </div>
+                            <div class="progress" style="height: 10px; border-radius: 5px;">
+                                <div class="progress-bar bg-danger" style="width: @pct%"></div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted small">No expenses logged yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logs Row (Orders vs Expenses) -->
+<div class="row g-4">
+    <!-- Recent Orders -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-slate-700 m-0"><i class="fa-solid fa-basket-shopping text-muted me-2"></i>Recent Orders</h6>
+                <a href="/Order/OrderBoard" class="btn btn-xs btn-outline-indigo px-2 font-weight-500 py-1" style="font-size: 0.75rem; border-radius: 5px;">View Board</a>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light text-secondary small fw-bold" style="background-color: #f8fafc;">
+                        <tr>
+                            <th scope="col" class="ps-4">Ticket</th>
+                            <th scope="col">Table</th>
+                            <th scope="col" class="text-end">Total</th>
+                            <th scope="col" class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in recentOrders)
+                        {
+                            string badgeClass = order.Status switch
+                            {
+                                RestaurantManagementSystem.Models.OrderStatus.Completed => "bg-success-subtle text-success border border-success-subtle",
+                                RestaurantManagementSystem.Models.OrderStatus.Cancelled => "bg-danger-subtle text-danger border border-danger-subtle",
+                                RestaurantManagementSystem.Models.OrderStatus.Preparing => "bg-warning-subtle text-warning border border-warning-subtle",
+                                _ => "bg-secondary-subtle text-secondary border"
+                            };
+                            
+                            <tr>
+                                <td class="ps-4 fw-semibold">@order.OrderNumber</td>
+                                <td>@(order.Table != null ? order.Table.TableNumber : "Takeaway")</td>
+                                <td class="text-end fw-bold">$@order.GrandTotal.ToString("F2")</td>
+                                <td class="text-center">
+                                    <span class="badge @badgeClass px-2 py-1">@order.Status</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Expenses -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-slate-700 m-0"><i class="fa-solid fa-receipt text-muted me-2"></i>Recent Expenses</h6>
+                <a href="/Manager/Expenses" class="btn btn-xs btn-outline-indigo px-2 font-weight-500 py-1" style="font-size: 0.75rem; border-radius: 5px;">View Expenses</a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light text-secondary small fw-bold" style="background-color: #f8fafc;">
+                        <tr>
+                            <th scope="col" class="ps-4">Expense Title</th>
+                            <th scope="col">Category</th>
+                            <th scope="col" class="text-end">Amount</th>
+                            <th scope="col" class="text-center">Logged Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var exp in recentExpenses)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-semibold text-truncate" style="max-width: 160px;">@exp.ExpenseName</td>
+                                <td><span class="badge bg-light text-dark">@exp.Category</span></td>
+                                <td class="text-end fw-bold text-danger">-$@exp.Amount.ToString("F2")</td>
+                                <td class="text-center text-muted small">@exp.Date.ToString("MM/dd")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

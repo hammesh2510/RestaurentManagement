@@ -1,0 +1,181 @@
+@model RestaurantManagementSystem.Models.Order
+@{
+    ViewData["Title"] = "Cashier checkout";
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h1 class="h3 m-0 fw-bold text-slate-800"><i class="fa-solid fa-cash-register me-2 text-indigo"></i>Cashier Checkout</h1>
+        <p class="text-muted m-0">Process invoice closure and payments for @(Model.Table != null ? Model.Table.TableNumber : "Takeaway").</p>
+    </div>
+    <div class="col-auto">
+        <a href="/Manager/TableActivities" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+            <i class="fa-solid fa-arrow-left me-2"></i>Back to Boards
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Invoice Breakdown Column -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold m-0 text-slate-800">Order Summary</h5>
+                <span class="badge bg-slate-100 text-slate-800 border px-2.5 py-1">@Model.OrderNumber</span>
+            </div>
+            
+            <div class="card-body p-4">
+                <table class="table table-borderless align-middle pb-2 border-bottom">
+                    <thead class="table-light text-slate-500 font-weight-700 small">
+                        <tr>
+                            <th>Item Name</th>
+                            <th class="text-center">Rate</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            var total = item.Price * item.Quantity;
+                            <tr class="border-bottom border-light">
+                                <td class="fw-semibold text-slate-800">@item.MenuItem?.Name</td>
+                                <td class="text-center">$@item.Price.ToString("F2")</td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end fw-bold">$@total.ToString("F2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="d-flex flex-column gap-2 pt-3">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Sub Total:</span>
+                        <span class="fw-bold text-slate-800" id="raw-subtotal" data-value="@Model.SubTotal">$@Model.SubTotal.ToString("F2")</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Tax (10.0%):</span>
+                        <span class="fw-bold text-slate-700" id="raw-tax" data-value="@Model.TaxAmount">$@Model.TaxAmount.ToString("F2")</span>
+                    </div>
+                    <div class="d-flex justify-content-between d-none" id="discount-display-row">
+                        <span class="text-danger">Discount Applied:</span>
+                        <span class="fw-bold text-danger" id="discount-display-val">-$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-top pt-2 mt-2">
+                        <span class="h5 fw-bold mb-0">payable Total:</span>
+                        <span class="h5 fw-bold text-indigo mb-0" id="checkout-payable-total" data-base="@(Model.SubTotal + Model.TaxAmount)">$@Model.GrandTotal.ToString("F2")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Capture Form -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h5 class="fw-bold m-0 text-slate-800"><i class="fa-solid fa-credit-card text-muted me-2"></i>Select Payment Method</h5>
+            </div>
+            
+            <div class="card-body p-4">
+                <form asp-action="Checkout" asp-route-id="@Model.Id" method="post" id="checkout-payment-form">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Discount amount adjustment -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-slate-700">Apply Discount ($)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" id="DiscountAmount" name="discountAmount" class="form-control" min="0" max="@Model.SubTotal" step="0.01" value="0.00" />
+                        </div>
+                        <small class="text-muted">Max discount allowed: $@Model.SubTotal.ToString("F2")</small>
+                    </div>
+
+                    <!-- Payment methods switches -->
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-slate-700 d-block">Method</label>
+                        
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="paymentMethod" id="method-cash" value="0" checked autocomplete="off" />
+                                <label class="btn btn-outline-secondary w-100 py-3.5 fw-semibold" for="method-cash" style="border-radius: 8px;">
+                                    <i class="fa-solid fa-money-bill-wave d-block mb-1 fa-lg"></i>Cash
+                                </label>
+                            </div>
+                            
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="paymentMethod" id="method-card" value="1" autocomplete="off" />
+                                <label class="btn btn-outline-secondary w-100 py-3.5 fw-semibold" for="method-card" style="border-radius: 8px;">
+                                    <i class="fa-solid fa-credit-card d-block mb-1 fa-lg"></i>Card
+                                </label>
+                            </div>
+
+                            <div class="col-4">
+                                <input type="radio" class="btn-check" name="paymentMethod" id="method-upi" value="2" autocomplete="off" />
+                                <label class="btn btn-outline-secondary w-100 py-3.5 fw-semibold" for="method-upi" style="border-radius: 8px;">
+                                    <i class="fa-solid fa-qrcode d-block mb-1 fa-lg"></i>UPI App
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reference Number -->
+                    <div class="mb-4" id="reference-wrapper" style="display: none;">
+                        <label class="form-label fw-semibold text-slate-700">Transaction ID / Reference Number</label>
+                        <input type="text" name="transactionId" class="form-control" placeholder="e.g. UPI Ref, Card receipt Auth ID" />
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-success py-3 fw-bold" style="border-radius: 10px; font-size: 1.05rem;">
+                            <i class="fa-solid fa-check-double me-2"></i>Complete checkout & Clear Table
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Live discount computation
+            $('#DiscountAmount').on('input', function () {
+                let disc = parseFloat($(this).val()) || 0;
+                let maxDisc = parseFloat($('#raw-subtotal').data('value')) || 0;
+
+                // Clamp discount
+                if (disc < 0) disc = 0;
+                if (disc > maxDisc) {
+                    disc = maxDisc;
+                    $(this).val(maxDisc.toFixed(2));
+                }
+
+                // Show discount row
+                if (disc > 0) {
+                    $('#discount-display-row').removeClass('d-none');
+                    $('#discount-display-val').text('-$' + disc.toFixed(2));
+                } else {
+                    $('#discount-display-row').addClass('d-none');
+                }
+
+                // Calculate subtotal - discount + tax
+                let subVal = parseFloat($('#raw-subtotal').data('value')) || 0;
+                let taxVal = parseFloat($('#raw-tax').data('value')) || 0;
+                let newTotal = (subVal - disc) + taxVal;
+                if (newTotal < 0) newTotal = 0;
+
+                $('#checkout-payable-total').text('$' + newTotal.toFixed(2));
+            });
+
+            // Toggle transaction input visibility based on card/upi payment choices
+            $('input[type=radio][name=paymentMethod]').on('change', function () {
+                if ($(this).val() === '0') {
+                    $('#reference-wrapper').slideUp(200);
+                } else {
+                    $('#reference-wrapper').slideDown(200);
+                }
+            });
+        });
+    </script>
+}

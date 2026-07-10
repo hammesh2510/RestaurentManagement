@@ -1,0 +1,232 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<!-- Dashboard Banner / Greeting -->
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h1 class="h3 m-0 fw-bold text-slate-800"><i class="fa-solid fa-gauge me-2 text-indigo"></i>Analytics Dashboard</h1>
+        <p class="text-muted m-0">Welcome back to the restaurant command center.</p>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 font-weight-500">
+            <i class="fa-regular fa-clock me-1"></i>Shift: Morning (09:00 AM - 06:00 PM)
+        </span>
+    </div>
+</div>
+
+<!-- Core Metric Stats Row -->
+<div class="row g-4 mb-4">
+    <!-- Stat 1: Revenue -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold text-uppercase">Sales Today</h6>
+                    <h3 class="m-0 fw-bold text-dark">$825.40</h3>
+                    <span class="text-success small"><i class="fa-solid fa-arrow-trend-up me-1"></i>+12.5% from yesterday</span>
+                </div>
+                <div class="p-3 rounded-3 bg-success-subtle text-success">
+                    <i class="fa-solid fa-wallet fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat 2: Total Orders -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold text-uppercase">Total Orders</h6>
+                    <h3 class="m-0 fw-bold text-dark">48</h3>
+                    <span class="text-slate-500 small"><i class="fa-solid fa-utensils me-1"></i>8 Delivery, 40 Dine-In</span>
+                </div>
+                <div class="p-3 rounded-3 bg-primary-subtle text-primary">
+                    <i class="fa-solid fa-cash-register fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat 3: Active Tables -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold text-uppercase">Active Tables</h6>
+                    <h3 class="m-0 fw-bold text-dark">9 / 18</h3>
+                    <span class="text-warning small"><i class="fa-regular fa-face-smile me-1"></i>50% Capacity occupancy</span>
+                </div>
+                <div class="p-3 rounded-3 bg-warning-subtle text-warning">
+                    <i class="fa-solid fa-table-cells-large fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat 4: Pending Kitchen Queue -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold text-uppercase">Kitchen Queue</h6>
+                    <h3 class="m-0 fw-bold text-danger">5 Left</h3>
+                    <span class="text-danger small"><i class="fa-regular fa-bell me-1"></i>Avg preparation: 12 mins</span>
+                </div>
+                <div class="p-3 rounded-3 bg-danger-subtle text-danger">
+                    <i class="fa-solid fa-fire fa-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Area Split: Analytics Graphs & Quick Actions -->
+<div class="row g-4 mb-4">
+    <!-- Left Column: Chart Mock & Order Queues -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <div class="fw-bold text-slate-700" style="font-size: 1.1rem;">Sales Revenue Chart</div>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary active">Hourly</button>
+                    <button class="btn btn-outline-secondary">Weekly</button>
+                </div>
+            </div>
+            <div class="card-body py-4">
+                <!-- Visual Mock of a Chart Grid -->
+                <div class="bg-light rounded p-4 d-flex align-items-end justify-content-between" style="height: 250px;">
+                    <div class="d-flex flex-column align-items-center w-100">
+                        <div class="bg-primary opacity-25 rounded-top" style="height: 40px; width: 60%;"></div>
+                        <span class="small text-muted mt-2">10 AM</span>
+                    </div>
+                    <div class="d-flex flex-column align-items-center w-100">
+                        <div class="bg-primary opacity-50 rounded-top" style="height: 90px; width: 60%;"></div>
+                        <span class="small text-muted mt-2">12 PM</span>
+                    </div>
+                    <div class="d-flex flex-column align-items-center w-100">
+                        <div class="bg-primary opacity-75 rounded-top" style="height: 180px; width: 60%;"></div>
+                        <span class="small text-muted mt-2">02 PM</span>
+                    </div>
+                    <div class="d-flex flex-column align-items-center w-100">
+                        <div class="bg-primary opacity-50 rounded-top" style="height: 120px; width: 60%;"></div>
+                        <span class="small text-muted mt-2">04 PM</span>
+                    </div>
+                    <div class="d-flex flex-column align-items-center w-100">
+                        <div class="bg-primary rounded-top" style="height: 210px; width: 60%;"></div>
+                        <span class="small text-muted mt-2">06 PM</span>
+                    </div>
+                    <div class="d-flex flex-column align-items-center w-100">
+                        <div class="bg-primary opacity-75 rounded-top" style="height: 160px; width: 60%;"></div>
+                        <span class="small text-muted mt-2">08 PM</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-0">
+                <div class="fw-bold text-slate-700" style="font-size: 1.1rem;">Kitchen Operations Monitor</div>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light text-secondary small fw-bold" style="background-color: #f8fafc;">
+                        <tr>
+                            <th scope="col" class="ps-4">Ticket</th>
+                            <th scope="col">Table</th>
+                            <th scope="col">Items</th>
+                            <th scope="col" class="text-center">Elapsed</th>
+                            <th scope="col" class="text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="ps-4 fw-bold">#ORD-0245</td>
+                            <td>Table 4</td>
+                            <td class="text-muted">1x Chicken Burger, 2x Fresh Lime Soda</td>
+                            <td class="text-center"><span class="text-danger fw-bold"><i class="fa-regular fa-clock me-1"></i>18 mins</span></td>
+                            <td class="text-center"><span class="badge bg-danger">Preparing</span></td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4 fw-bold">#ORD-0247</td>
+                            <td>Table 12</td>
+                            <td class="text-muted">1x Margherita Pizza, 1x Pasta Alfredo</td>
+                            <td class="text-center"><span class="text-warning fw-bold"><i class="fa-regular fa-clock me-1"></i>8 mins</span></td>
+                            <td class="text-center"><span class="badge bg-warning text-dark">Preparing</span></td>
+                        </tr>
+                        <tr>
+                            <td class="ps-4 fw-bold">#ORD-0248</td>
+                            <td>Takeaway</td>
+                            <td class="text-muted">2x Cappuccino, 1x Chocolate Muffin</td>
+                            <td class="text-center"><span class="text-success fw-bold"><i class="fa-regular fa-clock me-1"></i>3 mins</span></td>
+                            <td class="text-center"><span class="badge bg-info">New Order</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Quick Commands & Inventory Stock Level Alarms -->
+    <div class="col-lg-4">
+        <!-- Quick Action Box -->
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%); color: #ffffff;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-bolt me-2"></i>Quick Actions</h5>
+                
+                <div class="d-grid gap-3">
+                    <a asp-controller="Category" asp-action="Index" class="btn btn-light text-start py-3 p-3 border-0 d-flex justify-content-between align-items-center" style="border-radius: 10px; font-weight: 600;">
+                        <span><i class="fa-solid fa-list text-primary me-2"></i>Category Module</span>
+                        <i class="fa-solid fa-circle-chevron-right text-muted"></i>
+                    </a>
+                    
+                    <button class="btn btn-light text-start py-3 p-3 border-0 d-flex justify-content-between align-items-center" style="border-radius: 10px; font-weight: 600; background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255,255,255,0.15); color: #ffffff;">
+                        <span><i class="fa-solid fa-plus-circle me-2"></i>Create New Order</span>
+                        <i class="fa-solid fa-circle-chevron-right text-white-50"></i>
+                    </button>
+                    
+                    <button class="btn btn-light text-start py-3 p-3 border-0 d-flex justify-content-between align-items-center" style="border-radius: 10px; font-weight: 600; background-color: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255,255,255,0.15); color: #ffffff;">
+                        <span><i class="fa-solid fa-chair me-2"></i>Table Layout Board</span>
+                        <i class="fa-solid fa-circle-chevron-right text-white-50"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Stock Alerts -->
+        <div class="card border-0 shadow-sm" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-0">
+                <div class="fw-bold text-slate-700" style="font-size: 1.1rem;"><i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>Low Stock Alert</div>
+            </div>
+            
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                        <div>
+                            <div class="fw-bold small text-slate-800">Fresh Milk</div>
+                            <span class="text-danger small font-weight-500">Remaining: 4 Liters</span>
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger">Min: 15L</span>
+                    </div>
+
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                        <div>
+                            <div class="fw-bold small text-slate-800">Paneer (Tofu)</div>
+                            <span class="text-danger small font-weight-500">Remaining: 1.5 Kilograms</span>
+                        </div>
+                        <span class="badge bg-danger-subtle text-danger">Min: 5kg</span>
+                    </div>
+
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3 border-0">
+                        <div>
+                            <div class="fw-bold small text-slate-800">Hamburger Buns</div>
+                            <span class="text-warning small font-weight-500">Remaining: 18 Pieces</span>
+                        </div>
+                        <span class="badge bg-warning-subtle text-warning">Min: 20pcs</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

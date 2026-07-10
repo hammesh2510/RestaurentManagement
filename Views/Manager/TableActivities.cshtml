@@ -1,0 +1,196 @@
+@model IEnumerable<RestaurantManagementSystem.Models.RestaurantTable>
+@using RestaurantManagementSystem.Models
+@{
+    ViewData["Title"] = "Table Billing Activities";
+    var activeOrders = ViewBag.ActiveOrders as List<Order> ?? new List<Order>();
+}
+
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <h1 class="h3 m-0 fw-bold text-slate-800"><i class="fa-solid fa-table-cells-large me-2 text-indigo"></i>Table Billing & Activities</h1>
+        <p class="text-muted m-0">Monitor table occupancies, running bills, checkout accounts, and receipt requests.</p>
+    </div>
+    <div class="col-auto">
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 font-weight-500">
+            <i class="fa-solid fa-circle text-danger me-1" style="font-size: 0.6rem;"></i>Live Billing
+        </span>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm" style="border-radius: 15px; background-color: #ffffff;">
+    <div class="card-body p-4">
+        <!-- Dashboard legend indicators -->
+        <div class="d-flex flex-wrap gap-3 mb-4 pb-3 border-bottom text-muted small">
+            <div><i class="fa-solid fa-circle text-success me-1"></i>Available</div>
+            <div><i class="fa-solid fa-circle text-danger me-1"></i>Occupied (Has Bill)</div>
+            <div><i class="fa-solid fa-circle text-warning me-1"></i>Reserved</div>
+            <div><i class="fa-solid fa-circle text-info me-1"></i>Cleaning In Progress</div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var table in Model)
+            {
+                // Find active order for this table
+                var activeOrder = activeOrders.FirstOrDefault(o => o.TableId == table.Id);
+                
+                string borderClass = table.Status switch
+                {
+                    TableStatus.Available => "border-success",
+                    TableStatus.Occupied => "border-danger",
+                    TableStatus.Reserved => "border-warning",
+                    TableStatus.Cleaning => "border-info",
+                    _ => "border-secondary"
+                };
+
+                string statusText = table.Status.ToString();
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-2 shadow-sm @borderClass" style="border-radius: 12px; background-color: #ffffff; border-style: solid !important;">
+                        <input type="hidden" name="__RequestVerificationToken" value="@Html.AntiForgeryToken().ToString()" />
+                        
+                        <div class="card-body p-3.5 d-flex flex-column justify-content-between">
+                            <!-- Card Header Details -->
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold m-0 text-slate-800">@table.TableNumber</h5>
+                                    <span class="badge bg-light text-slate-600 border px-2 py-1 small">
+                                        <i class="fa-solid fa-users me-1 text-slate-400"></i>@table.Capacity seats
+                                    </span>
+                                </div>
+
+                                @if (table.Status == TableStatus.Occupied && activeOrder != null)
+                                {
+                                    <!-- Order status and breakdown -->
+                                    <div class="bg-light p-3 rounded mb-3" style="font-size: 0.85rem;">
+                                        <div class="d-flex justify-content-between align-items-center mb-2 pb-1 border-bottom border-light-custom">
+                                            <span class="fw-semibold text-indigo">Active Bill</span>
+                                            <span class="badge bg-danger">@activeOrder.Status</span>
+                                        </div>
+                                        
+                                        <!-- Items preview list -->
+                                        <div class="text-slate-600 mb-2">
+                                            @foreach (var item in activeOrder.OrderItems)
+                                            {
+                                                <div class="d-flex justify-content-between">
+                                                    <span>@item.Quantity x @item.MenuItem?.Name</span>
+                                                    <span>$@((item.Price * item.Quantity).ToString("F2"))</span>
+                                                </div>
+                                            }
+                                        </div>
+
+                                        <div class="d-flex justify-content-between fw-bold pt-1 border-top" style="font-size: 0.9rem;">
+                                            <span>Payable Total:</span>
+                                            <span class="text-indigo">$@activeOrder.GrandTotal.ToString("F2")</span>
+                                        </div>
+                                    </div>
+                                }
+                                else if (table.Status == TableStatus.Reserved)
+                                {
+                                    <div class="text-center py-4 bg-light rounded text-muted mb-3" style="font-size: 0.85rem;">
+                                        <i class="fa-solid fa-bookmark text-warning fa-xl mb-2"></i>
+                                        <div>Table is Reserved for booking</div>
+                                    </div>
+                                }
+                                else if (table.Status == TableStatus.Cleaning)
+                                {
+                                    <div class="text-center py-4 bg-light rounded text-muted mb-3" style="font-size: 0.85rem;">
+                                        <i class="fa-solid fa-broom text-info fa-xl mb-2"></i>
+                                        <div>Table being cleaned and prepared</div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4 bg-light rounded text-muted mb-3" style="font-size: 0.85rem;">
+                                        <i class="fa-solid fa-circle-check text-success fa-xl mb-2"></i>
+                                        <div>Available / Empty Table</div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Footer action buttons -->
+                            <div class="pt-2 border-top mt-auto">
+                                @if (table.Status == TableStatus.Occupied && activeOrder != null)
+                                {
+                                    <div class="row g-2">
+                                        <div class="col-4">
+                                            <a href="/Order/WaiterPOS?tableId=@table.Id" class="btn btn-sm btn-outline-secondary w-100 py-2" title="Add items to table order">
+                                                <i class="fa-solid fa-plus-circle"></i> Item
+                                            </a>
+                                        </div>
+                                        <div class="col-4">
+                                            <a href="/Order/PrintBill/@activeOrder.Id" target="_blank" class="btn btn-sm btn-outline-dark w-100 py-2" title="Print temporary Bill">
+                                                <i class="fa-solid fa-print"></i> Print
+                                            </a>
+                                        </div>
+                                        <div class="col-4">
+                                            <a href="/Order/Checkout/@activeOrder.Id" class="btn btn-sm btn-danger w-100 py-2 fw-semibold" title="Checkout Order">
+                                                <i class="fa-solid fa-cash-register"></i> Pay
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
+                                else if (table.Status == TableStatus.Cleaning)
+                                {
+                                    <button class="btn btn-info text-white w-100 py-2 font-weight-600" onclick="markAvailable(@table.Id)">
+                                        <i class="fa-solid fa-check me-1"></i>Release to Available
+                                    </button>
+                                }
+                                else if (table.Status == TableStatus.Reserved)
+                                {
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <button class="btn btn-outline-success btn-sm w-100 py-2" onclick="markAvailable(@table.Id)">
+                                                Cancel Reserve
+                                            </button>
+                                        </div>
+                                        <div class="col-6">
+                                            <a href="/Order/WaiterPOS?tableId=@table.Id" class="btn btn-primary btn-sm w-100 py-2">
+                                                Take Order (POS)
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
+                                else // Available
+                                {
+                                    <a href="/Order/WaiterPOS?tableId=@table.Id" class="btn btn-success w-100 py-2 font-weight-600">
+                                        <i class="fa-solid fa-cart-plus me-1"></i>Open New Order POS
+                                    </a>
+                                }
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function markAvailable(tableId) {
+            showSpinner();
+            $.ajax({
+                url: '/Table/ToggleStatus',
+                type: 'POST',
+                data: {
+                    id: tableId,
+                    status: 'Available',
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (res) {
+                    hideSpinner();
+                    if (res.success) {
+                        location.reload();
+                    } else {
+                        alert(res.message || "Failed to update table status.");
+                    }
+                },
+                error: function () {
+                    hideSpinner();
+                    alert("A communication error occurred.");
+                }
+            });
+        }
+    </script>
+}

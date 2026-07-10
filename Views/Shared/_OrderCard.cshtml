@@ -1,0 +1,92 @@
+@model RestaurantManagementSystem.Models.Order
+@using RestaurantManagementSystem.Models
+
+@{
+    var minutesAgo = (int)(DateTime.UtcNow - Model.CreatedAt).TotalMinutes;
+    string timeDisplay = minutesAgo == 0 ? "Just now" : $"{minutesAgo}m ago";
+    string timeBadgeClass = minutesAgo > 15 ? "text-danger" : "text-muted";
+}
+
+<div class="card border border-light p-3 shadow-sm bg-white" style="border-radius: 10px; font-size: 0.85rem;">
+    <!-- Card header -->
+    <div class="d-flex justify-content-between align-items-start mb-2 pb-2 border-bottom">
+        <div>
+            <div class="fw-bold text-slate-800" style="font-size: 0.9rem;">
+                @(Model.Table != null ? Model.Table.TableNumber : "Takeaway / Delivery")
+            </div>
+            <div class="text-muted" style="font-size: 0.72rem;">@Model.OrderNumber</div>
+        </div>
+        <span class="small @timeBadgeClass fw-bold"><i class="fa-regular fa-clock me-1"></i>@timeDisplay</span>
+    </div>
+
+    <!-- Items preview -->
+    <div class="mb-3">
+        <ul class="list-unstyled mb-0 d-flex flex-column gap-1">
+            @foreach (var item in Model.OrderItems)
+            {
+                <li class="d-flex justify-content-between">
+                    <span>
+                        <span class="badge bg-light text-slate-700 font-weight-700 me-1">@item.Quantity x</span>
+                        @item.MenuItem?.Name
+                    </span>
+                    @if (!string.IsNullOrEmpty(item.Notes))
+                    {
+                        <div class="text-warning small italic ps-3">Note: @item.Notes</div>
+                    }
+                </li>
+            }
+        </ul>
+        
+        @if (!string.IsNullOrEmpty(Model.OrderNotes))
+        {
+            <div class="mt-2 p-2 bg-light-subtle text-indigo rounded border border-indigo-subtle" style="font-size: 0.75rem; border-style: dashed !important; background-color: rgba(99, 102, 241, 0.05);">
+                <i class="fa-solid fa-note-sticky me-1"></i><strong>Notes: </strong>@Model.OrderNotes
+            </div>
+        }
+    </div>
+
+    <!-- Pricing and actions -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-muted" style="font-size: 0.75rem;">Total Amount:</span>
+        <span class="fw-bold text-indigo" style="font-size: 1.05rem;">$@Model.GrandTotal.ToString("F2")</span>
+    </div>
+
+    <!-- Form token for anti-forgery -->
+    @Html.AntiForgeryToken()
+
+    <div class="d-flex gap-2">
+        @if (Model.Status == OrderStatus.Pending)
+        {
+            <button onclick="advanceStatus(@Model.Id, 'Preparing')" class="btn btn-warning text-dark btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
+                <i class="fa-solid fa-play me-1"></i>Start Cooking
+            </button>
+            <button onclick="advanceStatus(@Model.Id, 'Cancelled')" class="btn btn-outline-danger btn-sm px-2.5 py-1.5" title="Cancel Order" style="border-radius: 6px;">
+                <i class="fa-solid fa-ban"></i>
+            </button>
+        }
+        else if (Model.Status == OrderStatus.Preparing)
+        {
+            <button onclick="advanceStatus(@Model.Id, 'Ready')" class="btn btn-success btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
+                <i class="fa-solid fa-utensils me-1"></i>Mark Ready
+            </button>
+        }
+        else if (Model.Status == OrderStatus.Ready)
+        {
+            <button onclick="advanceStatus(@Model.Id, 'Served')" class="btn btn-primary btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
+                <i class="fa-solid fa-check me-1"></i>Mark Served
+            </button>
+        }
+        else if (Model.Status == OrderStatus.Served)
+        {
+            <a asp-controller="Order" asp-action="PrintBill" asp-route-id="@Model.Id" target="_blank" class="btn btn-outline-secondary btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
+                <i class="fa-solid fa-print me-1"></i>Bill
+            </a>
+            @if (User.IsInRole("Manager") || User.IsInRole("Cashier"))
+            {
+                <a asp-controller="Order" asp-action="Checkout" asp-route-id="@Model.Id" class="btn btn-success btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
+                    <i class="fa-solid fa-cash-register me-1"></i>Pay
+                </a>
+            }
+        }
+    </div>
+</div>

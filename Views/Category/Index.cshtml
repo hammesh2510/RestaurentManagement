@@ -1,0 +1,294 @@
+@model IEnumerable<RestaurantManagementSystem.ViewModels.CategoryDetailsViewModel>
+@{
+    ViewData["Title"] = "Category Management";
+}
+
+<!-- Page Header and Actions -->
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Categories</li>
+            </ol>
+        </nav>
+        <h1 class="h3 m-0 fw-bold text-slate-800"><i class="fa-solid fa-folder-tree me-2 text-indigo"></i>Category Management</h1>
+    </div>
+    <div class="col-auto">
+        <a asp-action="Create" class="btn btn-primary px-4 py-2" style="border-radius: 8px;">
+            <i class="fa-solid fa-plus me-2"></i>Add New Category
+        </a>
+    </div>
+</div>
+
+<!-- Search and Statistics Row -->
+<div class="row mb-4">
+    <!-- Stat 1 -->
+    <div class="col-md-4 mb-3 mb-md-0">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center">
+                <div class="p-3 rounded-3 bg-primary-subtle text-primary me-3">
+                    <i class="fa-solid fa-list-ul fa-xl"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold">Total Categories</h6>
+                    <h3 class="m-0 fw-bold text-dark">@Model.Count()</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stat 2 -->
+    <div class="col-md-4 mb-3 mb-md-0">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center">
+                <div class="p-3 rounded-3 bg-success-subtle text-success me-3">
+                    <i class="fa-solid fa-toggle-on fa-xl"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold">Active</h6>
+                    <h3 class="m-0 fw-bold text-dark">@Model.Count(c => c.IsActive)</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stat 3 -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-3 h-100" style="border-radius: 12px; background-color: #ffffff;">
+            <div class="d-flex align-items-center">
+                <div class="p-3 rounded-3 bg-warning-subtle text-warning me-3">
+                    <i class="fa-solid fa-bowl-food fa-xl"></i>
+                </div>
+                <div>
+                    <h6 class="text-muted small mb-1 fw-bold">Average Items per Category</h6>
+                    <h3 class="m-0 fw-bold text-dark">
+                        @(Model.Any() ? Math.Round(Model.Average(c => c.MenuItemCount), 1).ToString() : "0")
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Table List Card -->
+<div class="card border-0 shadow-sm" style="border-radius: 15px; background-color: #ffffff;">
+    <div class="card-header bg-white py-3 border-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="fw-bold text-slate-700" style="font-size: 1.1rem;">Category Listing</div>
+        <!-- Simple Search Bar -->
+        <div class="position-relative" style="max-width: 320px; width: 100%;">
+            <span class="position-absolute top-50 start-0 translate-middle-y ps-3 text-muted">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+            <input type="text" id="categorySearch" class="form-control ps-5 py-2" placeholder="Search categories..." style="border-radius: 8px;" />
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="categoryTable">
+            <thead class="table-light text-secondary small fw-bold text-uppercase" style="background-color: #f8fafc;">
+                <tr>
+                    <th scope="col" class="ps-4 py-3" style="width: 5%;">#</th>
+                    <th scope="col" class="py-3" style="width: 25%;">Category Name</th>
+                    <th scope="col" class="py-3" style="width: 30%;">Description</th>
+                    <th scope="col" class="py-3 text-center" style="width: 12%;">Menu Items</th>
+                    <th scope="col" class="py-3 text-center" style="width: 13%;">Status</th>
+                    <th scope="col" class="py-3 text-end pe-4" style="width: 15%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int count = 1;
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="fa-regular fa-folder-open mb-3 d-block" style="font-size: 3rem;"></i>
+                            No categories created yet. Click "Add New Category" to establish one.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr class="category-row">
+                            <td class="ps-4 fw-medium text-muted">@count</td>
+                            <td>
+                                <div class="fw-bold text-slate-800">@item.Name</div>
+                                <span class="text-muted small" style="font-size: 0.75rem;">Created: @item.CreatedAt.ToString("dd MMM yyyy")</span>
+                            </td>
+                            <td class="text-truncate text-muted" style="max-width: 280px;" title="@item.Description">
+                                @(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)
+                            </td>
+                            <td class="text-center">
+                                <span class="badge rounded-pill bg-light text-dark border px-3 py-1 font-weight-500">
+                                    @item.MenuItemCount
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <!-- Status Toggle Switch -->
+                                <div class="form-check form-switch d-inline-block">
+                                    <input class="form-check-input status-toggle" type="checkbox" role="switch" 
+                                           data-id="@item.Id" @(item.IsActive ? "checked" : "") style="cursor: pointer;" />
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle ms-2 status-badge-@item.Id @(item.IsActive ? "" : "d-none")" style="font-size: 0.75rem;">Active</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle ms-2 status-badge-@item.Id @(item.IsActive ? "d-none" : "")" style="font-size: 0.75rem;">Inactive</span>
+                                </div>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="View Details" style="border-radius: 6px 0 0 6px;">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning" title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+                                    
+                                    <!-- Delete Form -->
+                                    <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline delete-form-@item.Id">
+                                        @Html.AntiForgeryToken()
+                                        <button type="button" class="btn btn-sm btn-outline-danger confirm-delete-btn" data-id="@item.Id" data-name="@item.Name" data-items="@item.MenuItemCount" title="Delete" style="border-radius: 0 6px 6px 0;">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        count++;
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Simple Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p>Are you sure you want to delete the category <strong id="deleteCategoryName" class="text-dark"></strong>?</p>
+                <div id="deleteWarningAlert" class="alert alert-warning d-none border-0 small m-0" style="border-radius: 8px;">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                    This category contains <strong id="deleteCategoryItemCount"></strong> registered menu items! Removing this category might be restricted.
+                </div>
+                <p class="text-muted small mt-2 m-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 8px;">Cancel</button>
+                <button type="button" id="executeDeleteBtn" class="btn btn-danger" style="border-radius: 8px;">Delete Category</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Live Search Feature
+            $("#categorySearch").on("keyup", function () {
+                var value = $(this).val().toLowerCase();
+                $(".category-row").filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+
+            // AJAX Toggle Status Switch
+            $(".status-toggle").on("change", function () {
+                const switchInput = $(this);
+                const categoryId = switchInput.data("id");
+                
+                // Show loading overlay
+                showSpinner();
+
+                // Anti-forgery Token
+                const token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("ToggleActive", "Category")',
+                    type: 'POST',
+                    data: {
+                        id: categoryId,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (response) {
+                        hideSpinner();
+                        if (response.success) {
+                            // Toggle badge displays
+                            $(`.status-badge-${categoryId}`).toggleClass('d-none');
+                            
+                            // Show Toast
+                            showCustomToast("success", response.message || "Status updated.");
+                        } else {
+                            // Reset checkbox if failed
+                            switchInput.prop('checked', !switchInput.is(':checked'));
+                            showCustomToast("error", response.message || "Operation failed.");
+                        }
+                    },
+                    error: function () {
+                        hideSpinner();
+                        switchInput.prop('checked', !switchInput.is(':checked'));
+                        showCustomToast("error", "An error occurred. Please try again.");
+                    }
+                });
+            });
+
+            // Delete double-check validation trigger
+            let pendingDeleteId = null;
+
+            $(".confirm-delete-btn").on("click", function() {
+                const categoryId = $(this).data("id");
+                const categoryName = $(this).data("name");
+                const itemQuantity = parseInt($(this).data("items"));
+
+                pendingDeleteId = categoryId;
+                $("#deleteCategoryName").text(categoryName);
+                
+                if (itemQuantity > 0) {
+                    $("#deleteCategoryItemCount").text(itemQuantity);
+                    $("#deleteWarningAlert").removeClass("d-none");
+                } else {
+                    $("#deleteWarningAlert").addClass("d-none");
+                }
+
+                const myModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+                myModal.show();
+            });
+
+            $("#executeDeleteBtn").on("click", function() {
+                if (pendingDeleteId) {
+                    showSpinner();
+                    // Submit form
+                    $(`.delete-form-${pendingDeleteId}`).submit();
+                }
+            });
+
+            // Toast feedback creator (fallback dynamically when page is not refreshed)
+            function showCustomToast(type, message) {
+                const bgClass = type === "success" ? "bg-success" : "bg-danger";
+                const iconClass = type === "success" ? "fa-circle-check" : "fa-circle-exclamation";
+                
+                const toastHtml = `
+                    <div class="toast align-items-center text-white ${bgClass} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+                        <div class="d-flex">
+                            <div class="toast-body">
+                                <i class="fa-solid ${iconClass} me-2"></i>${message}
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `;
+                
+                const toastContainer = $("#toast-container");
+                const newToast = $(toastHtml).appendTo(toastContainer);
+                const bsToast = new bootstrap.Toast(newToast[0]);
+                bsToast.show();
+            }
+        });
+    </script>
+}

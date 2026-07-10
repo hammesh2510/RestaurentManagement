@@ -1,0 +1,517 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Restaurant POS</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-bg: #0f172a;
+            --sidebar-hover-bg: #1e293b;
+            --sidebar-active-bg: #6366f1;
+            --body-bg: #f8fafc;
+            --card-sk-bg: #ffffff;
+            --primary-accent: #4f46e5;
+            --primary-accent-light: rgba(99, 102, 241, 0.15);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+        }
+
+        /* Sidebar Styling */
+        #sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            color: #cbd5e1;
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.05);
+        }
+
+        #sidebar.collapsed {
+            margin-left: calc(-1 * var(--sidebar-width));
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-brand {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            background: linear-gradient(45deg, #a5b4fc, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-menu {
+            flex-grow: 1;
+            padding: 20px 10px;
+            overflow-y: auto;
+            list-style: none;
+            margin: 0;
+        }
+
+        .menu-item {
+            margin-bottom: 5px;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .menu-link i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .menu-link:hover {
+            color: #ffffff;
+            background-color: var(--sidebar-hover-bg);
+        }
+
+        .menu-link.active {
+            color: #ffffff;
+            background-color: var(--sidebar-active-bg);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+        }
+
+        .menu-link.active i {
+            color: #ffffff;
+        }
+
+        .menu-category-title {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #475569;
+            padding: 10px 15px 5px 15px;
+            font-weight: 700;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        /* Content Area */
+        #content-wrapper {
+            flex-grow: 1;
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        #content-wrapper.expanded {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        /* Top Header */
+        .top-navbar {
+            background-color: #ffffff;
+            height: 70px;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .toggle-sidebar-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .toggle-sidebar-btn:hover {
+            color: var(--text-main);
+        }
+
+        /* Profile Dropdown */
+        .profile-dropdown-btn {
+            border: none;
+            background: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-main);
+        }
+
+        .profile-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background-color: var(--primary-accent-light);
+            color: var(--primary-accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            border: 2px solid var(--primary-accent);
+        }
+
+        /* Main Section Container */
+        .main-content {
+            padding: 30px;
+            flex-grow: 1;
+        }
+
+        /* Footer */
+        .main-footer {
+            background-color: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            padding: 15px 30px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Loading Spinner */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s, visibility 0.25s;
+        }
+
+        #loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Breadcrumb Theme */
+        .breadcrumb-item a {
+            color: var(--primary-accent);
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item.active {
+            color: var(--text-muted);
+        }
+
+        /* Toast Container */
+        .toast-container-custom {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        /* Responsive Mobile Styles */
+        @@media (max-width: 768px) {
+            #sidebar {
+                margin-left: calc(-1 * var(--sidebar-width));
+            }
+            #sidebar.nav-open {
+                margin-left: 0;
+            }
+            #content-wrapper {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    <!-- Loading Spinner -->
+    <div id="loading-overlay">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container-custom" id="toast-container">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="toast align-items-center text-white bg-success border-0 show" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fa-solid fa-circle-check me-2"></i>@TempData["SuccessMessage"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="toast align-items-center text-white bg-danger border-0 show" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i>@TempData["ErrorMessage"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <a href="/" class="sidebar-brand">
+                <i class="fa-solid fa-utensils me-2"></i>RMS SYSTEM
+            </a>
+            <button class="toggle-sidebar-btn d-md-none" id="hide-sidebar-btn">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        
+        <ul class="sidebar-menu">
+            @if (User.IsInRole("Manager"))
+            {
+                <li class="menu-item">
+                    <a asp-controller="Manager" asp-action="Dashboard" class="menu-link" id="nav-dashboard">
+                        <i class="fa-solid fa-gauge"></i><span>Analytics Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a asp-controller="Manager" asp-action="TableActivities" class="menu-link" id="nav-activities">
+                        <i class="fa-solid fa-table-cells-large"></i><span>Table Billing</span>
+                    </a>
+                </li>
+            }
+
+            <div class="menu-category-title">Core Operations</div>
+            
+            @if (User.IsInRole("Manager") || User.IsInRole("Waiter"))
+            {
+                <li class="menu-item">
+                    <a asp-controller="Order" asp-action="WaiterPOS" class="menu-link" id="nav-pos">
+                        <i class="fa-solid fa-cart-plus"></i><span>Waiter POS</span>
+                    </a>
+                </li>
+            }
+
+            <li class="menu-item">
+                <a asp-controller="Order" asp-action="OrderBoard" class="menu-link" id="nav-orders">
+                    <i class="fa-solid fa-receipt"></i><span>Order Workspace</span>
+                </a>
+            </li>
+
+            @if (User.IsInRole("Manager"))
+            {
+                <div class="menu-category-title">Administration</div>
+
+                <li class="menu-item">
+                    <a asp-controller="Category" asp-action="Index" class="menu-link" id="nav-categories">
+                        <i class="fa-solid fa-tags"></i><span>Category Setup</span>
+                    </a>
+                </li>
+                
+                <li class="menu-item">
+                    <a asp-controller="MenuItem" asp-action="Index" class="menu-link" id="nav-menu">
+                        <i class="fa-solid fa-burger"></i><span>Menu Item Catalog</span>
+                    </a>
+                </li>
+
+                <li class="menu-item">
+                    <a asp-controller="Table" asp-action="Index" class="menu-link" id="nav-tables">
+                        <i class="fa-solid fa-chair"></i><span>Physical Tables</span>
+                    </a>
+                </li>
+
+                <li class="menu-item">
+                    <a asp-controller="Manager" asp-action="Expenses" class="menu-link" id="nav-expenses">
+                        <i class="fa-solid fa-file-invoice-dollar"></i><span>Expenses Ledger</span>
+                    </a>
+                </li>
+            }
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="small text-truncate" style="max-width: 140px;">
+                    <i class="fa-solid fa-circle text-success me-1" style="font-size: 0.6rem;"></i>
+                    @User.Identity?.Name
+                </div>
+                <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-link p-0 text-decoration-none text-muted-custom" title="Log Out" style="border: none; background: none;">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content Workspace wrapper -->
+    <div id="content-wrapper">
+        
+        <!-- Top Navigation Bar -->
+        <header class="top-navbar">
+            <button class="toggle-sidebar-btn" id="toggle-sidebar-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div class="d-flex align-items-center gap-3">
+                <!-- Notifications -->
+                <button class="btn btn-link text-muted p-1 position-relative" style="border: none; background: none;">
+                    <i class="fa-solid fa-bell" style="font-size: 1.15rem;"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; padding: 3px 6px;">
+                        3
+                    </span>
+                </button>
+
+                <!-- Profile Dropdown -->
+                <div class="dropdown">
+                    <button class="profile-dropdown-btn dropdown-toggle" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="profile-avatar">
+                            @(User.Identity?.Name != null ? User.Identity.Name.Substring(0, 1).ToUpper() : "A")
+                        </div>
+                        <span class="d-none d-sm-inline font-weight-500">
+                            @(UserManager.GetUserAsync(User).Result?.FullName ?? "User")
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm" aria-labelledby="profileDropdown" style="background-color: #ffffff;">
+                        <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-user me-2 text-muted"></i>My Profile</a></li>
+                        <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-gear me-2 text-muted"></i>Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item py-2 text-danger" style="border: none; background: none; width: 100%; text-align: left;">
+                                    <i class="fa-solid fa-right-from-bracket me-2"></i>Log Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="main-content">
+            @RenderBody()
+        </main>
+
+        <!-- General Footer -->
+        <footer class="main-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>&copy; 2026 - Restaurant Management System</div>
+                <div>Enterprise POS Platform</div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+    
+    <script>
+        $(document).ready(function () {
+            // Sidebar Toggle Control
+            $('#toggle-sidebar-btn').on('click', function () {
+                if ($(window).width() <= 768) {
+                    $('#sidebar').toggleClass('nav-open');
+                } else {
+                    $('#sidebar').toggleClass('collapsed');
+                    $('#content-wrapper').toggleClass('expanded');
+                }
+            });
+
+            $('#hide-sidebar-btn').on('click', function () {
+                $('#sidebar').removeClass('nav-open');
+            });
+
+            // Auto Initialize Toasts
+            const toasts = $('.toast');
+            if (toasts.length > 0) {
+                toasts.each(function () {
+                    const toast = new bootstrap.Toast(this);
+                    toast.show();
+                });
+            }
+
+            // Spinner Loading Screen controls
+            window.showSpinner = function() {
+                $('#loading-overlay').addClass('show');
+            };
+            window.hideSpinner = function() {
+                $('#loading-overlay').removeClass('show');
+            };
+
+            // Add spinner loaders to standard posts
+            $('form:not([data-ajax="true"])').on('submit', function() {
+                if ($(this).valid()) {
+                    showSpinner();
+                }
+            });
+
+            // Highlight Active Sidebar Item
+            const currentPath = window.location.pathname.toLowerCase();
+            if (currentPath.indexOf('/category') !== -1) {
+                $('#nav-categories').addClass('active');
+            } else if (currentPath === '/' || currentPath.indexOf('/home') !== -1) {
+                $('#nav-dashboard').addClass('active');
+            }
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,82 @@
+@model RestaurantManagementSystem.ViewModels.CategoryDetailsViewModel
+@{
+    ViewData["Title"] = "Category Details";
+}
+
+<!-- Page Header and Actions -->
+<div class="row align-items-center mb-4">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Category" asp-action="Index">Categories</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Details</li>
+            </ol>
+        </nav>
+        <h1 class="h3 m-0 fw-bold text-slate-800"><i class="fa-solid fa-circle-info me-2 text-indigo"></i>Category Details</h1>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; background-color: #ffffff;">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <div class="fw-bold text-slate-700" style="font-size: 1.1rem;">Metadata Panel</div>
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1">Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1">Inactive</span>
+                }
+            </div>
+
+            <div class="card-body p-4 pt-1">
+                <div class="row g-4 mb-4">
+                    <!-- Column 1 -->
+                    <div class="col-md-6">
+                        <label class="text-muted small fw-semibold text-uppercase d-block mb-1">Category Name</label>
+                        <div class="h5 fw-bold text-dark mb-0">@Model.Name</div>
+                    </div>
+
+                    <!-- Column 2 -->
+                    <div class="col-md-6">
+                        <label class="text-muted small fw-semibold text-uppercase d-block mb-1">Associated Menu Items</label>
+                        <div class="h5 fw-bold text-dark mb-0">@Model.MenuItemCount items</div>
+                    </div>
+
+                    <!-- Column 3 -->
+                    <div class="col-md-6">
+                        <label class="text-muted small fw-semibold text-uppercase d-block mb-1">Created At</label>
+                        <div class="text-slate-700">@Model.CreatedAt.ToString("dd MMM yyyy, hh:mm tt")</div>
+                    </div>
+
+                    <!-- Column 4 -->
+                    <div class="col-md-6">
+                        <label class="text-muted small fw-semibold text-uppercase d-block mb-1">Last Updated</label>
+                        <div class="text-slate-700">@Model.UpdatedAt.ToString("dd MMM yyyy, hh:mm tt")</div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="col-12">
+                        <label class="text-muted small fw-semibold text-uppercase d-block mb-1">Description</label>
+                        <div class="bg-light p-3 rounded" style="min-height: 80px; color: #475569;">
+                            @(string.IsNullOrEmpty(Model.Description) ? "No description provided." : Model.Description)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Nav Buttons -->
+                <div class="d-flex justify-content-end gap-3 mt-5 pt-3 border-top">
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 8px;">
+                        <i class="fa-solid fa-arrow-left me-2"></i>Back to List
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning px-4 py-2" style="border-radius: 8px;">
+                        <i class="fa-solid fa-edit me-2"></i>Edit Category
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
