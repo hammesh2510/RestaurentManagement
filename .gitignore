@@ -1,0 +1,43 @@
+# Build results
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# NuGet packages
+*.nupkg
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+
+# Publish output
+publish/
+
+# Test Results
+TestResults/
+
+# Coverage
+coverage/
+
+# Local database files
+*.mdf
+*.ldf
