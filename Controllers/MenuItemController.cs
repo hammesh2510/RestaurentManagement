@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -14,23 +15,36 @@ namespace RestaurantManagementSystem.Controllers
     public class MenuItemController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public MenuItemController(ApplicationDbContext context)
+        public MenuItemController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: MenuItem
         public async Task<IActionResult> Index()
         {
-            var menuItems = await _context.MenuItems.Include(m => m.Category).ToListAsync();
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var menuItems = await _context.MenuItems
+                .Include(m => m.Category)
+                .Where(m => m.RestaurantId == restaurantId)
+                .ToListAsync();
             return View(menuItems);
         }
 
         // GET: MenuItem/Create
         public async Task<IActionResult> Create()
         {
-            var categories = await _context.Categories.Where(c => c.IsActive).ToListAsync();
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var categories = await _context.Categories
+                .Where(c => c.IsActive && c.RestaurantId == restaurantId)
+                .ToListAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Name");
             return View();
         }
@@ -40,6 +54,11 @@ namespace RestaurantManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(MenuItem menuItem)
         {
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+            menuItem.RestaurantId = restaurantId;
+            ModelState.Remove("RestaurantId");
+
             if (ModelState.IsValid)
             {
                 menuItem.CreatedAt = DateTime.UtcNow;
@@ -51,7 +70,9 @@ namespace RestaurantManagementSystem.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var categories = await _context.Categories.Where(c => c.IsActive).ToListAsync();
+            var categories = await _context.Categories
+                .Where(c => c.IsActive && c.RestaurantId == restaurantId)
+                .ToListAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Name", menuItem.CategoryId);
             return View(menuItem);
         }
@@ -59,14 +80,19 @@ namespace RestaurantManagementSystem.Controllers
         // GET: MenuItem/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var menuItem = await _context.MenuItems.FindAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var menuItem = await _context.MenuItems.FirstOrDefaultAsync(m => m.Id == id && m.RestaurantId == restaurantId);
             if (menuItem == null)
             {
                 TempData["ErrorMessage"] = "Menu item not found.";
                 return RedirectToAction(nameof(Index));
             }
 
-            var categories = await _context.Categories.Where(c => c.IsActive).ToListAsync();
+            var categories = await _context.Categories
+                .Where(c => c.IsActive && c.RestaurantId == restaurantId)
+                .ToListAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Name", menuItem.CategoryId);
             return View(menuItem);
         }
@@ -82,14 +108,35 @@ namespace RestaurantManagementSystem.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var existingItem = await _context.MenuItems.FirstOrDefaultAsync(m => m.Id == id && m.RestaurantId == restaurantId);
+            if (existingItem == null)
+            {
+                TempData["ErrorMessage"] = "Menu item not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            menuItem.RestaurantId = restaurantId;
+            ModelState.Remove("RestaurantId");
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    menuItem.UpdatedAt = DateTime.UtcNow;
-                    _context.Update(menuItem);
+                    existingItem.Name = menuItem.Name;
+                    existingItem.Price = menuItem.Price;
+                    existingItem.CategoryId = menuItem.CategoryId;
+                    existingItem.Description = menuItem.Description;
+                    existingItem.IsVeg = menuItem.IsVeg;
+                    existingItem.IsAvailable = menuItem.IsAvailable;
+                    existingItem.IsRecommended = menuItem.IsRecommended;
+                    existingItem.UpdatedAt = DateTime.UtcNow;
+
+                    _context.Update(existingItem);
                     await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = $"Menu item '{menuItem.Name}' updated successfully!";
+                    TempData["SuccessMessage"] = $"Menu item '{existingItem.Name}' updated successfully!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -103,7 +150,9 @@ namespace RestaurantManagementSystem.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var categories = await _context.Categories.Where(c => c.IsActive).ToListAsync();
+            var categories = await _context.Categories
+                .Where(c => c.IsActive && c.RestaurantId == restaurantId)
+                .ToListAsync();
             ViewBag.Categories = new SelectList(categories, "Id", "Name", menuItem.CategoryId);
             return View(menuItem);
         }
@@ -113,7 +162,10 @@ namespace RestaurantManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var menuItem = await _context.MenuItems.FindAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var menuItem = await _context.MenuItems.FirstOrDefaultAsync(m => m.Id == id && m.RestaurantId == restaurantId);
             if (menuItem == null)
             {
                 TempData["ErrorMessage"] = "Menu item not found.";
@@ -123,7 +175,11 @@ namespace RestaurantManagementSystem.Controllers
             try
             {
                 // Cascade delete associated order items in code to avoid Restrict violation
-                var referencingOrderItems = await _context.OrderItems.Where(oi => oi.MenuItemId == id).ToListAsync();
+                var referencingOrderItems = await _context.OrderItems
+                    .Include(oi => oi.Order)
+                    .Where(oi => oi.MenuItemId == id && oi.Order!.RestaurantId == restaurantId)
+                    .ToListAsync();
+
                 if (referencingOrderItems.Any())
                 {
                     var orderIds = referencingOrderItems.Select(oi => oi.OrderId).Distinct().ToList();
@@ -166,7 +222,10 @@ namespace RestaurantManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleAvailability(int id)
         {
-            var menuItem = await _context.MenuItems.FindAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var menuItem = await _context.MenuItems.FirstOrDefaultAsync(m => m.Id == id && m.RestaurantId == restaurantId);
             if (menuItem == null)
             {
                 return Json(new { success = false, message = "Item not found." });

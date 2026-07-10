@@ -47,8 +47,8 @@ namespace RestaurantManagementSystem.Controllers
                 .Where(o => o.RestaurantId == restaurantId && o.Status != OrderStatus.Completed && o.Status != OrderStatus.Cancelled)
                 .CountAsync();
 
-            int totalTables = await _context.RestaurantTables.CountAsync();
-            int occupiedTables = await _context.RestaurantTables.CountAsync(t => t.Status == TableStatus.Occupied);
+            int totalTables = await _context.RestaurantTables.Where(t => t.RestaurantId == restaurantId).CountAsync();
+            int occupiedTables = await _context.RestaurantTables.Where(t => t.RestaurantId == restaurantId).CountAsync(t => t.Status == TableStatus.Occupied);
             double occupancyRate = totalTables > 0 ? Math.Round((double)occupiedTables / totalTables * 100, 1) : 0;
 
             // Chart Data - Revenue Method breakdown
@@ -112,7 +112,7 @@ namespace RestaurantManagementSystem.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
             var restaurantId = user?.RestaurantId ?? string.Empty;
 
-            var tables = await _context.RestaurantTables.ToListAsync();
+            var tables = await _context.RestaurantTables.Where(t => t.RestaurantId == restaurantId).ToListAsync();
 
             // Get active orders (not completed, not cancelled) and map to table
             var activeOrders = await _context.Orders
@@ -167,7 +167,9 @@ namespace RestaurantManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteExpense(int id)
         {
-            var expense = await _context.Expenses.FindAsync(id);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == User.Identity.Name);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+            var expense = await _context.Expenses.FirstOrDefaultAsync(e => e.Id == id && e.RestaurantId == restaurantId);
             if (expense == null)
             {
                 TempData["ErrorMessage"] = "Expense not found.";

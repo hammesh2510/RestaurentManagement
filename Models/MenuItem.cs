@@ -55,6 +55,10 @@ namespace RestaurantManagementSystem.Models
         [Display(Name = "Updated At")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+        [Required]
+        [StringLength(100)]
+        public string RestaurantId { get; set; } = string.Empty;
+
         // Navigation property for order items
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }

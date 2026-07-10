@@ -32,9 +32,28 @@
 
                     <div class="mb-3">
                         <label asp-for="CategoryId" class="form-label fw-semibold text-slate-700">Category</label>
-                        <select asp-for="CategoryId" class="form-select form-control" asp-items="ViewBag.Categories" required>
-                            <option value="">-- Select Category --</option>
-                        </select>
+                        @if (ViewBag.Categories == null || !((SelectList)ViewBag.Categories).Any())
+                        {
+                            <div class="alert alert-warning border-0 p-3 mb-2" style="background-color: #fffbeb; border-radius: 10px;">
+                                <div class="d-flex align-items-center mb-1">
+                                    <i class="fa-solid fa-triangle-exclamation text-warning me-2 fa-lg"></i>
+                                    <span class="fw-bold" style="color: #b45309; font-size: 0.9rem;">No Categories Setup Yet</span>
+                                </div>
+                                <p class="small mb-2 text-slate-600" style="font-size: 0.8rem; line-height: 1.4;">You must create at least one category before adding food catalog items.</p>
+                                <a href="/Category/Index" class="btn btn-warning btn-sm fw-bold px-3 py-1.5 text-white" style="background-color: #d97706; border: none; border-radius: 6px; font-size: 0.78rem;">
+                                    <i class="fa-solid fa-plus me-1"></i>Go to Category Setup
+                                </a>
+                            </div>
+                            <select asp-for="CategoryId" class="form-select form-control d-none">
+                                <option value="">-- No Categories --</option>
+                            </select>
+                        }
+                        else
+                        {
+                            <select asp-for="CategoryId" class="form-select form-control" asp-items="ViewBag.Categories" required>
+                                <option value="">-- Select Category --</option>
+                            </select>
+                        }
                         <span asp-validation-for="CategoryId" class="text-danger small mt-1 d-block"></span>
                     </div>
 
@@ -77,9 +96,18 @@
                     </div>
 
                     <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-primary py-2.5 fw-semibold" style="border-radius: 8px;">
-                            <i class="fa-solid fa-floppy-disk me-2"></i>Save Dish
-                        </button>
+                        @if (ViewBag.Categories == null || !((SelectList)ViewBag.Categories).Any())
+                        {
+                            <button type="button" class="btn btn-secondary py-2.5 fw-semibold" style="border-radius: 8px;" disabled>
+                                <i class="fa-solid fa-ban me-2"></i>Save Dish (Category Required)
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="submit" class="btn btn-primary py-2.5 fw-semibold" style="border-radius: 8px;">
+                                <i class="fa-solid fa-floppy-disk me-2"></i>Save Dish
+                            </button>
+                        }
                     </div>
                 </form>
             </div>

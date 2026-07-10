@@ -37,10 +37,10 @@ namespace RestaurantManagementSystem.Data
             {
                 var categories = new List<Category>
                 {
-                    new Category { Name = "Appetizers", Description = "Start off your meal with delicious starters", IsActive = true },
-                    new Category { Name = "Main Course", Description = "Hearty and filling entrees", IsActive = true },
-                    new Category { Name = "Desserts", Description = "Delectable sweet treats", IsActive = true },
-                    new Category { Name = "Beverages", Description = "Refreshing hot & cold drinks", IsActive = true }
+                    new Category { Name = "Appetizers", Description = "Start off your meal with delicious starters", IsActive = true, RestaurantId = managerUser.Id },
+                    new Category { Name = "Main Course", Description = "Hearty and filling entrees", IsActive = true, RestaurantId = managerUser.Id },
+                    new Category { Name = "Desserts", Description = "Delectable sweet treats", IsActive = true, RestaurantId = managerUser.Id },
+                    new Category { Name = "Beverages", Description = "Refreshing hot & cold drinks", IsActive = true, RestaurantId = managerUser.Id }
                 };
 
                 await context.Categories.AddRangeAsync(categories);
@@ -57,20 +57,20 @@ namespace RestaurantManagementSystem.Data
 
                 var items = new List<MenuItem>
                 {
-                    new MenuItem { Name = "Garlic Bread with Cheese", Price = 6.99m, IsVeg = true, IsAvailable = true, IsRecommended = true, CategoryId = appetizers.Id, Description = "Baked bread topped with garlic butter and melted mozzarella." },
-                    new MenuItem { Name = "Crispy Chicken Wings", Price = 9.99m, IsVeg = false, IsAvailable = true, IsRecommended = false, CategoryId = appetizers.Id, Description = "Fried wings tossed in spicy buffalo sauce." },
-                    new MenuItem { Name = "French Fries", Price = 4.99m, IsVeg = true, IsAvailable = true, IsRecommended = false, CategoryId = appetizers.Id, Description = "Crispy golden salted potato fries." },
+                    new MenuItem { Name = "Garlic Bread with Cheese", Price = 6.99m, IsVeg = true, IsAvailable = true, IsRecommended = true, CategoryId = appetizers.Id, Description = "Baked bread topped with garlic butter and melted mozzarella.", RestaurantId = managerUser.Id },
+                    new MenuItem { Name = "Crispy Chicken Wings", Price = 9.99m, IsVeg = false, IsAvailable = true, IsRecommended = false, CategoryId = appetizers.Id, Description = "Fried wings tossed in spicy buffalo sauce.", RestaurantId = managerUser.Id },
+                    new MenuItem { Name = "French Fries", Price = 4.99m, IsVeg = true, IsAvailable = true, IsRecommended = false, CategoryId = appetizers.Id, Description = "Crispy golden salted potato fries.", RestaurantId = managerUser.Id },
 
-                    new MenuItem { Name = "Veg Margherita Pizza", Price = 12.99m, IsVeg = true, IsAvailable = true, IsRecommended = true, CategoryId = mainCourse.Id, Description = "Classic pizza with tomato sauce, fresh basil, and fresh mozzarella." },
-                    new MenuItem { Name = "Chicken Club Sandwich", Price = 10.49m, IsVeg = false, IsAvailable = true, IsRecommended = false, CategoryId = mainCourse.Id, Description = "Triple-decker sandwich with chicken, lettuce, tomato, and mayo." },
-                    new MenuItem { Name = "Creamy Pasta Alfredo", Price = 11.99m, IsVeg = true, IsAvailable = true, IsRecommended = true, CategoryId = mainCourse.Id, Description = "Fettuccine pasta in rich buttery parmesan cream sauce." },
+                    new MenuItem { Name = "Veg Margherita Pizza", Price = 12.99m, IsVeg = true, IsAvailable = true, IsRecommended = true, CategoryId = mainCourse.Id, Description = "Classic pizza with tomato sauce, fresh basil, and fresh mozzarella.", RestaurantId = managerUser.Id },
+                    new MenuItem { Name = "Chicken Club Sandwich", Price = 10.49m, IsVeg = false, IsAvailable = true, IsRecommended = false, CategoryId = mainCourse.Id, Description = "Triple-decker sandwich with chicken, lettuce, tomato, and mayo.", RestaurantId = managerUser.Id },
+                    new MenuItem { Name = "Creamy Pasta Alfredo", Price = 11.99m, IsVeg = true, IsAvailable = true, IsRecommended = true, CategoryId = mainCourse.Id, Description = "Fettuccine pasta in rich buttery parmesan cream sauce.", RestaurantId = managerUser.Id },
 
-                    new MenuItem { Name = "Sizzling Chocolate Brownie", Price = 7.99m, IsVeg = true, IsAvailable = true, IsRecommended = true, CategoryId = desserts.Id, Description = "Hot fudge brownie served with a scoop of vanilla ice cream." },
-                    new MenuItem { Name = "New York Cheesecake", Price = 8.49m, IsVeg = true, IsAvailable = true, IsRecommended = false, CategoryId = desserts.Id, Description = "Rich, creamy baked cheesecake slice." },
+                    new MenuItem { Name = "Sizzling Chocolate Brownie", Price = 7.99m, IsVeg = true, IsAvailable = true, IsRecommended = true, CategoryId = desserts.Id, Description = "Hot fudge brownie served with a scoop of vanilla ice cream.", RestaurantId = managerUser.Id },
+                    new MenuItem { Name = "New York Cheesecake", Price = 8.49m, IsVeg = true, IsAvailable = true, IsRecommended = false, CategoryId = desserts.Id, Description = "Rich, creamy baked cheesecake slice.", RestaurantId = managerUser.Id },
 
-                    new MenuItem { Name = "Fresh Lime Soda", Price = 3.99m, IsVeg = true, IsAvailable = true, IsRecommended = false, CategoryId = beverages.Id, Description = "Chilled soda flavored with fresh lime juice and sugar syrup." },
-                    new MenuItem { Name = "Iced Café Latte", Price = 4.99m, IsVeg = true, IsAvailable = true, IsRecommended = false, CategoryId = beverages.Id, Description = "Chilled espresso coffee blended with fresh milk and ice." },
-                    new MenuItem { Name = "Mineral Water", Price = 1.99m, IsVeg = true, IsAvailable = true, IsRecommended = false, CategoryId = beverages.Id, Description = "Chilled bottled spring water." }
+                    new MenuItem { Name = "Fresh Lime Soda", Price = 3.99m, IsVeg = true, IsAvailable = true, IsRecommended = false, CategoryId = beverages.Id, Description = "Chilled soda flavored with fresh lime juice and sugar syrup.", RestaurantId = managerUser.Id },
+                    new MenuItem { Name = "Iced Café Latte", Price = 4.99m, IsVeg = true, IsAvailable = true, IsRecommended = false, CategoryId = beverages.Id, Description = "Chilled espresso coffee blended with fresh milk and ice.", RestaurantId = managerUser.Id },
+                    new MenuItem { Name = "Mineral Water", Price = 1.99m, IsVeg = true, IsAvailable = true, IsRecommended = false, CategoryId = beverages.Id, Description = "Chilled bottled spring water.", RestaurantId = managerUser.Id }
                 };
 
                 await context.MenuItems.AddRangeAsync(items);
@@ -82,14 +82,14 @@ namespace RestaurantManagementSystem.Data
             {
                 var tables = new List<RestaurantTable>
                 {
-                    new RestaurantTable { TableNumber = "Table 1", Capacity = 2, Status = TableStatus.Available },
-                    new RestaurantTable { TableNumber = "Table 2", Capacity = 4, Status = TableStatus.Available },
-                    new RestaurantTable { TableNumber = "Table 3", Capacity = 4, Status = TableStatus.Available },
-                    new RestaurantTable { TableNumber = "Table 4", Capacity = 6, Status = TableStatus.Available },
-                    new RestaurantTable { TableNumber = "Table 5", Capacity = 6, Status = TableStatus.Available },
-                    new RestaurantTable { TableNumber = "Table 6", Capacity = 8, Status = TableStatus.Available },
-                    new RestaurantTable { TableNumber = "Table 7", Capacity = 2, Status = TableStatus.Available },
-                    new RestaurantTable { TableNumber = "Table 8", Capacity = 4, Status = TableStatus.Available }
+                    new RestaurantTable { TableNumber = "Table 1", Capacity = 2, Status = TableStatus.Available, RestaurantId = managerUser.Id },
+                    new RestaurantTable { TableNumber = "Table 2", Capacity = 4, Status = TableStatus.Available, RestaurantId = managerUser.Id },
+                    new RestaurantTable { TableNumber = "Table 3", Capacity = 4, Status = TableStatus.Available, RestaurantId = managerUser.Id },
+                    new RestaurantTable { TableNumber = "Table 4", Capacity = 6, Status = TableStatus.Available, RestaurantId = managerUser.Id },
+                    new RestaurantTable { TableNumber = "Table 5", Capacity = 6, Status = TableStatus.Available, RestaurantId = managerUser.Id },
+                    new RestaurantTable { TableNumber = "Table 6", Capacity = 8, Status = TableStatus.Available, RestaurantId = managerUser.Id },
+                    new RestaurantTable { TableNumber = "Table 7", Capacity = 2, Status = TableStatus.Available, RestaurantId = managerUser.Id },
+                    new RestaurantTable { TableNumber = "Table 8", Capacity = 4, Status = TableStatus.Available, RestaurantId = managerUser.Id }
                 };
 
                 await context.RestaurantTables.AddRangeAsync(tables);

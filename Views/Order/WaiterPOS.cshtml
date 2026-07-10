@@ -121,7 +121,7 @@
                             {
                                 bool isSelected = table.Id == selectedTableId;
                                 string tableStatusText = table.Status == RestaurantManagementSystem.Models.TableStatus.Available ? "" : $" ({table.Status})";
-                                <option value="@table.Id" selected="@isSelected">@table.TableNumber @tableStatusText</option>
+                                <option value="@table.Id" selected="@(isSelected ? "selected" : null)">@table.TableNumber @tableStatusText</option>
                             }
                         </select>
                     </div>
@@ -182,6 +182,13 @@
                     $('#table-id').val('');
                 }
             });
+
+            @if (selectedTableId.HasValue)
+            {
+                <text>
+                $('#table-id').val('@selectedTableId.Value');
+                </text>
+            }
 
             // Live search feature
             $('#pos-search').on('input', filterMenu);

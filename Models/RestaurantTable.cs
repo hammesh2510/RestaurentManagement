@@ -28,6 +28,10 @@ namespace RestaurantManagementSystem.Models
         [Required]
         public TableStatus Status { get; set; } = TableStatus.Available;
 
+        [Required]
+        [StringLength(100)]
+        public string RestaurantId { get; set; } = string.Empty;
+
         // Navigation properties
         public virtual ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();

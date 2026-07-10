@@ -36,7 +36,19 @@ namespace RestaurantManagementSystem.Controllers
                 return RedirectToAction("Index", "Home");
             }
             ViewData["ReturnUrl"] = returnUrl;
-            return View();
+
+            var model = new LoginViewModel();
+            if (Request.Cookies.TryGetValue("RememberMeEmail", out var email))
+            {
+                model.Email = email;
+                model.RememberMe = true;
+            }
+            if (Request.Cookies.TryGetValue("RememberMePassword", out var pwd))
+            {
+                model.Password = pwd;
+            }
+
+            return View(model);
         }
 
         [HttpPost]
@@ -62,6 +74,24 @@ namespace RestaurantManagementSystem.Controllers
 
                 if (result.Succeeded)
                 {
+                    if (model.RememberMe)
+                    {
+                        var cookieOptions = new CookieOptions
+                        {
+                            Expires = DateTimeOffset.UtcNow.AddDays(14),
+                            HttpOnly = true,
+                            Secure = Request.IsHttps,
+                            SameSite = SameSiteMode.Lax
+                        };
+                        Response.Cookies.Append("RememberMeEmail", model.Email, cookieOptions);
+                        Response.Cookies.Append("RememberMePassword", model.Password, cookieOptions);
+                    }
+                    else
+                    {
+                        Response.Cookies.Delete("RememberMeEmail");
+                        Response.Cookies.Delete("RememberMePassword");
+                    }
+
                     if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                     {
                         return Redirect(returnUrl);

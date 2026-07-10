@@ -26,9 +26,12 @@ namespace RestaurantManagementSystem.Controllers
         // GET: Order/WaiterPOS
         public async Task<IActionResult> WaiterPOS(int? tableId)
         {
-            var categories = await _context.Categories.Where(c => c.IsActive).ToListAsync();
-            var menuItems = await _context.MenuItems.Where(m => m.IsAvailable).Include(m => m.Category).ToListAsync();
-            var tables = await _context.RestaurantTables.ToListAsync();
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var categories = await _context.Categories.Where(c => c.IsActive && c.RestaurantId == restaurantId).ToListAsync();
+            var menuItems = await _context.MenuItems.Where(m => m.IsAvailable && m.RestaurantId == restaurantId).Include(m => m.Category).ToListAsync();
+            var tables = await _context.RestaurantTables.Where(t => t.RestaurantId == restaurantId).ToListAsync();
 
             ViewBag.Categories = categories;
             ViewBag.MenuItems = menuItems;
@@ -64,7 +67,7 @@ namespace RestaurantManagementSystem.Controllers
                 {
                     return Json(new { success = false, message = "Table is required for Dine-in orders." });
                 }
-                table = await _context.RestaurantTables.FindAsync(model.TableId.Value);
+                table = await _context.RestaurantTables.FirstOrDefaultAsync(t => t.Id == model.TableId.Value && t.RestaurantId == restaurantId);
                 if (table == null)
                 {
                     return Json(new { success = false, message = "Selected table does not exist." });
@@ -73,7 +76,7 @@ namespace RestaurantManagementSystem.Controllers
 
             // Generate Order Number: ORD-yyyyMMdd-XXXX (count of today + 1)
             var todayStr = DateTime.UtcNow.ToString("yyyyMMdd");
-            var orderCountToday = await _context.Orders.CountAsync(o => o.OrderNumber.Contains(todayStr));
+            var orderCountToday = await _context.Orders.CountAsync(o => o.OrderNumber.Contains(todayStr) && o.RestaurantId == restaurantId);
             var orderNumber = $"ORD-{todayStr}-{(orderCountToday + 1):D4}";
 
             // Calculate SubTotal
@@ -82,7 +85,7 @@ namespace RestaurantManagementSystem.Controllers
 
             foreach (var item in model.Items)
             {
-                var menuItem = await _context.MenuItems.FindAsync(item.MenuItemId);
+                var menuItem = await _context.MenuItems.FirstOrDefaultAsync(m => m.Id == item.MenuItemId && m.RestaurantId == restaurantId);
                 if (menuItem == null || !menuItem.IsAvailable)
                 {
                     return Json(new { success = false, message = $"Item with ID {item.MenuItemId} is not available." });

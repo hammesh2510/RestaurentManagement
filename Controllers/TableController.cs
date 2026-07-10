@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RestaurantManagementSystem.Data;
@@ -11,16 +12,23 @@ namespace RestaurantManagementSystem.Controllers
     public class TableController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public TableController(ApplicationDbContext context)
+        public TableController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Table
         public async Task<IActionResult> Index()
         {
-            var tables = await _context.RestaurantTables.ToListAsync();
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var tables = await _context.RestaurantTables
+                .Where(t => t.RestaurantId == restaurantId)
+                .ToListAsync();
             return View(tables);
         }
 
@@ -35,10 +43,15 @@ namespace RestaurantManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(RestaurantTable table)
         {
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+            table.RestaurantId = restaurantId;
+            ModelState.Remove("RestaurantId");
+
             if (ModelState.IsValid)
             {
                 // Check if table number is unique
-                var exists = await _context.RestaurantTables.AnyAsync(t => t.TableNumber == table.TableNumber);
+                var exists = await _context.RestaurantTables.AnyAsync(t => t.TableNumber == table.TableNumber && t.RestaurantId == restaurantId);
                 if (exists)
                 {
                     ModelState.AddModelError("TableNumber", "A table with this number already exists.");
@@ -56,7 +69,10 @@ namespace RestaurantManagementSystem.Controllers
         // GET: Table/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var table = await _context.RestaurantTables.FindAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var table = await _context.RestaurantTables.FirstOrDefaultAsync(t => t.Id == id && t.RestaurantId == restaurantId);
             if (table == null)
             {
                 TempData["ErrorMessage"] = "Table not found.";
@@ -76,9 +92,22 @@ namespace RestaurantManagementSystem.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var existingTable = await _context.RestaurantTables.FirstOrDefaultAsync(t => t.Id == id && t.RestaurantId == restaurantId);
+            if (existingTable == null)
+            {
+                TempData["ErrorMessage"] = "Table not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            table.RestaurantId = restaurantId;
+            ModelState.Remove("RestaurantId");
+
             if (ModelState.IsValid)
             {
-                var exists = await _context.RestaurantTables.AnyAsync(t => t.TableNumber == table.TableNumber && t.Id != table.Id);
+                var exists = await _context.RestaurantTables.AnyAsync(t => t.TableNumber == table.TableNumber && t.Id != table.Id && t.RestaurantId == restaurantId);
                 if (exists)
                 {
                     ModelState.AddModelError("TableNumber", "A table with this number already exists.");
@@ -87,9 +116,13 @@ namespace RestaurantManagementSystem.Controllers
 
                 try
                 {
-                    _context.Update(table);
+                    existingTable.TableNumber = table.TableNumber;
+                    existingTable.Capacity = table.Capacity;
+                    existingTable.Status = table.Status;
+
+                    _context.Update(existingTable);
                     await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = $"Table {table.TableNumber} updated successfully!";
+                    TempData["SuccessMessage"] = $"Table {existingTable.TableNumber} updated successfully!";
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -110,7 +143,10 @@ namespace RestaurantManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var table = await _context.RestaurantTables.FindAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var table = await _context.RestaurantTables.FirstOrDefaultAsync(t => t.Id == id && t.RestaurantId == restaurantId);
             if (table == null)
             {
                 TempData["ErrorMessage"] = "Table not found.";
@@ -135,7 +171,10 @@ namespace RestaurantManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(int id, TableStatus status)
         {
-            var table = await _context.RestaurantTables.FindAsync(id);
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var table = await _context.RestaurantTables.FirstOrDefaultAsync(t => t.Id == id && t.RestaurantId == restaurantId);
             if (table == null)
             {
                 return Json(new { success = false, message = "Table not found." });
