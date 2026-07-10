@@ -239,6 +239,17 @@
                     <span asp-validation-for="Role" class="text-danger small mt-1 d-block" style="color: #fca5a5 !important;"></span>
                 </div>
 
+                <div class="mb-3" id="manager-group" style="display: none;">
+                    <label asp-for="SelectedManagerId" class="form-label"></label>
+                    <div class="input-group">
+                        <span class="input-group-text input-group-text-custom"><i class="fa-solid fa-hotel"></i></span>
+                        <select asp-for="SelectedManagerId" class="form-select input-with-icon" asp-items="@(ViewBag.Managers != null ? new SelectList(ViewBag.Managers, "Id", "Email") : null)">
+                            <option value="">-- Choose Manager / Location --</option>
+                        </select>
+                    </div>
+                    <span asp-validation-for="SelectedManagerId" class="text-danger small mt-1 d-block" style="color: #fca5a5 !important;"></span>
+                </div>
+
                 <div class="mb-3">
                     <label asp-for="Password" class="form-label"></label>
                     <div class="input-group">
@@ -273,5 +284,20 @@
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/4.0.0/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            function toggleManagerDropdown() {
+                var selectedRole = $('#Role').val();
+                if (selectedRole && selectedRole !== 'Manager') {
+                    $('#manager-group').slideDown();
+                } else {
+                    $('#manager-group').slideUp();
+                }
+            }
+
+            $('#Role').change(toggleManagerDropdown);
+            toggleManagerDropdown();
+        });
+    </script>
 </body>
 </html>

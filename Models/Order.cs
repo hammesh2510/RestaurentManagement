@@ -84,6 +84,10 @@ namespace RestaurantManagementSystem.Models
         [Display(Name = "Created At")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        [Required]
+        [StringLength(100)]
+        public string RestaurantId { get; set; } = string.Empty;
+
         // Navigation properties
         public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
         public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();

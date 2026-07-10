@@ -33,5 +33,8 @@ namespace RestaurantManagementSystem.ViewModels
         [Required(ErrorMessage = "Role selection is required.")]
         [Display(Name = "Role / Position")]
         public string Role { get; set; } = string.Empty;
+
+        [Display(Name = "Select Manager / Location")]
+        public string? SelectedManagerId { get; set; }
     }
 }

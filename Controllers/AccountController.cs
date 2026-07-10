@@ -97,12 +97,16 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpGet]
-        public IActionResult Register()
+        public async Task<IActionResult> Register()
         {
             if (_signInManager.IsSignedIn(User))
             {
                 return RedirectToAction("Index", "Home");
             }
+
+            var managers = await _userManager.GetUsersInRoleAsync("Manager");
+            ViewBag.Managers = managers.Select(m => new { m.Id, m.FullName, m.Email }).ToList();
+
             return View();
         }
 
@@ -112,10 +116,20 @@ namespace RestaurantManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (model.Role != "Manager" && string.IsNullOrEmpty(model.SelectedManagerId))
+                {
+                    ModelState.AddModelError("SelectedManagerId", "Please select a Manager / Restaurant Location.");
+                    var managersList = await _userManager.GetUsersInRoleAsync("Manager");
+                    ViewBag.Managers = managersList.Select(m => new { m.Id, m.FullName, m.Email }).ToList();
+                    return View(model);
+                }
+
                 var existingUser = await _userManager.FindByEmailAsync(model.Email);
                 if (existingUser != null)
                 {
                     ModelState.AddModelError("Email", "Email address is already in use.");
+                    var managersList = await _userManager.GetUsersInRoleAsync("Manager");
+                    ViewBag.Managers = managersList.Select(m => new { m.Id, m.FullName, m.Email }).ToList();
                     return View(model);
                 }
 
@@ -123,6 +137,8 @@ namespace RestaurantManagementSystem.Controllers
                 if (!validRoles.Contains(model.Role))
                 {
                     ModelState.AddModelError("Role", "Invalid role selected.");
+                    var managersList = await _userManager.GetUsersInRoleAsync("Manager");
+                    ViewBag.Managers = managersList.Select(m => new { m.Id, m.FullName, m.Email }).ToList();
                     return View(model);
                 }
 
@@ -134,6 +150,7 @@ namespace RestaurantManagementSystem.Controllers
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow
                 };
+                user.RestaurantId = model.Role == "Manager" ? user.Id : model.SelectedManagerId!;
 
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
@@ -174,6 +191,8 @@ namespace RestaurantManagementSystem.Controllers
                 }
             }
 
+            var fallbackManagers = await _userManager.GetUsersInRoleAsync("Manager");
+            ViewBag.Managers = fallbackManagers.Select(m => new { m.Id, m.FullName, m.Email }).ToList();
             return View(model);
         }
     }

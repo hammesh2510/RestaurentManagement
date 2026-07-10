@@ -53,6 +53,9 @@ namespace RestaurantManagementSystem.Controllers
                 return Json(new { success = false, message = "User session expired." });
             }
 
+            var userObj = await _userManager.FindByIdAsync(userId);
+            var restaurantId = userObj?.RestaurantId ?? string.Empty;
+
             // Verify Table
             RestaurantTable? table = null;
             if (model.OrderType == OrderType.DineIn)
@@ -114,6 +117,7 @@ namespace RestaurantManagementSystem.Controllers
                 GrandTotal = grandTotal,
                 OrderNotes = model.OrderNotes,
                 CreatedByUserId = userId,
+                RestaurantId = restaurantId,
                 CreatedAt = DateTime.UtcNow,
                 OrderItems = orderItems
             };
@@ -134,11 +138,14 @@ namespace RestaurantManagementSystem.Controllers
         // GET: Order/OrderBoard
         public async Task<IActionResult> OrderBoard()
         {
+            var userObj = await _userManager.GetUserAsync(User);
+            var restaurantId = userObj?.RestaurantId ?? string.Empty;
+
             var activeOrders = await _context.Orders
                 .Include(o => o.Table)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
-                .Where(o => o.Status != OrderStatus.Completed && o.Status != OrderStatus.Cancelled)
+                .Where(o => o.RestaurantId == restaurantId && o.Status != OrderStatus.Completed && o.Status != OrderStatus.Cancelled)
                 .OrderBy(o => o.CreatedAt)
                 .ToListAsync();
 
@@ -150,7 +157,10 @@ namespace RestaurantManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int id, OrderStatus status)
         {
-            var order = await _context.Orders.Include(o => o.Table).FirstOrDefaultAsync(o => o.Id == id);
+            var userObj = await _userManager.GetUserAsync(User);
+            var restaurantId = userObj?.RestaurantId ?? string.Empty;
+
+            var order = await _context.Orders.Include(o => o.Table).FirstOrDefaultAsync(o => o.Id == id && o.RestaurantId == restaurantId);
             if (order == null)
             {
                 return Json(new { success = false, message = "Order not found." });
@@ -172,12 +182,15 @@ namespace RestaurantManagementSystem.Controllers
         // GET: Order/PrintBill/5
         public async Task<IActionResult> PrintBill(int id)
         {
+            var userObj = await _userManager.GetUserAsync(User);
+            var restaurantId = userObj?.RestaurantId ?? string.Empty;
+
             var order = await _context.Orders
                 .Include(o => o.Table)
                 .Include(o => o.CreatedByUser)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
-                .FirstOrDefaultAsync(o => o.Id == id);
+                .FirstOrDefaultAsync(o => o.Id == id && o.RestaurantId == restaurantId);
 
             if (order == null)
             {
@@ -192,11 +205,14 @@ namespace RestaurantManagementSystem.Controllers
         [Authorize(Roles = "Manager,Cashier")]
         public async Task<IActionResult> Checkout(int id)
         {
+            var userObj = await _userManager.GetUserAsync(User);
+            var restaurantId = userObj?.RestaurantId ?? string.Empty;
+
             var order = await _context.Orders
                 .Include(o => o.Table)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
-                .FirstOrDefaultAsync(o => o.Id == id);
+                .FirstOrDefaultAsync(o => o.Id == id && o.RestaurantId == restaurantId);
 
             if (order == null)
             {
@@ -219,10 +235,13 @@ namespace RestaurantManagementSystem.Controllers
         [Authorize(Roles = "Manager,Cashier")]
         public async Task<IActionResult> Checkout(int id, PaymentMethod paymentMethod, decimal discountAmount, string? transactionId)
         {
+            var userObj = await _userManager.GetUserAsync(User);
+            var restaurantId = userObj?.RestaurantId ?? string.Empty;
+
             var order = await _context.Orders
                 .Include(o => o.Table)
                 .Include(o => o.OrderItems)
-                .FirstOrDefaultAsync(o => o.Id == id);
+                .FirstOrDefaultAsync(o => o.Id == id && o.RestaurantId == restaurantId);
 
             if (order == null)
             {

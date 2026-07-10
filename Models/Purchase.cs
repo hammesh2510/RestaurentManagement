@@ -37,6 +37,10 @@ namespace RestaurantManagementSystem.Models
         [Display(Name = "Status")]
         public PurchaseStatus Status { get; set; } = PurchaseStatus.Ordered;
 
+        [Required]
+        [StringLength(100)]
+        public string RestaurantId { get; set; } = string.Empty;
+
         // Navigation property
         public virtual ICollection<PurchaseItem> PurchaseItems { get; set; } = new List<PurchaseItem>();
     }

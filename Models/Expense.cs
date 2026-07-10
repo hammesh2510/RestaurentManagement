@@ -30,5 +30,9 @@ namespace RestaurantManagementSystem.Models
         [StringLength(50)]
         [Display(Name = "Category")]
         public string Category { get; set; } = "General"; // Rent, Utilities, Salaries, Marketing, etc.
+
+        [Required]
+        [StringLength(100)]
+        public string RestaurantId { get; set; } = string.Empty;
     }
 }

@@ -26,8 +26,8 @@ namespace RestaurantManagementSystem.Data
 
             // 2. Seed Users
             ApplicationUser managerUser = await SeedUserAsync(userManager, "manager@restaurant.com", "Restaurant Manager", "Manager", "Manager@123");
-            ApplicationUser waiterUser = await SeedUserAsync(userManager, "waiter@restaurant.com", "John Waiter", "Waiter", "Waiter@123");
-            ApplicationUser chefUser = await SeedUserAsync(userManager, "chef@restaurant.com", "Chef Gordon", "Chef", "Chef@123");
+            ApplicationUser waiterUser = await SeedUserAsync(userManager, "waiter@restaurant.com", "John Waiter", "Waiter", "Waiter@123", managerUser.Id);
+            ApplicationUser chefUser = await SeedUserAsync(userManager, "chef@restaurant.com", "Chef Gordon", "Chef", "Chef@123", managerUser.Id);
 
             // Make sure the changes are committed before adding other data
             await context.SaveChangesAsync();
@@ -102,7 +102,8 @@ namespace RestaurantManagementSystem.Data
             string email,
             string fullName,
             string role,
-            string password)
+            string password,
+            string? restaurantId = null)
         {
             var user = await userManager.FindByEmailAsync(email);
             if (user == null)
@@ -113,13 +114,20 @@ namespace RestaurantManagementSystem.Data
                     Email = email,
                     FullName = fullName,
                     IsActive = true,
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    RestaurantId = restaurantId ?? string.Empty
                 };
 
                 var result = await userManager.CreateAsync(user, password);
                 if (result.Succeeded)
                 {
                     await userManager.AddToRoleAsync(user, role);
+                    
+                    if (string.IsNullOrEmpty(restaurantId))
+                    {
+                        user.RestaurantId = user.Id;
+                        await userManager.UpdateAsync(user);
+                    }
                 }
             }
             return user;

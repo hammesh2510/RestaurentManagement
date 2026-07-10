@@ -7,6 +7,7 @@ namespace RestaurantManagementSystem.Models
         public string FullName { get; set; } = string.Empty;
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string RestaurantId { get; set; } = string.Empty;
 
         // Navigation property for linked Employee database record
         public virtual Employee? Employee { get; set; }
