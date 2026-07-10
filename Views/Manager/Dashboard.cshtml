@@ -188,37 +188,44 @@
             </div>
             
             <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light text-secondary small fw-bold" style="background-color: #f8fafc;">
-                        <tr>
-                            <th scope="col" class="ps-4">Ticket</th>
-                            <th scope="col">Table</th>
-                            <th scope="col" class="text-end">Total</th>
-                            <th scope="col" class="text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var order in recentOrders)
-                        {
-                            string badgeClass = order.Status switch
-                            {
-                                RestaurantManagementSystem.Models.OrderStatus.Completed => "bg-success-subtle text-success border border-success-subtle",
-                                RestaurantManagementSystem.Models.OrderStatus.Cancelled => "bg-danger-subtle text-danger border border-danger-subtle",
-                                RestaurantManagementSystem.Models.OrderStatus.Preparing => "bg-warning-subtle text-warning border border-warning-subtle",
-                                _ => "bg-secondary-subtle text-secondary border"
-                            };
-                            
+                @if (recentOrders != null && recentOrders.Any())
+                {
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light text-secondary small fw-bold" style="background-color: #f8fafc;">
                             <tr>
-                                <td class="ps-4 fw-semibold">@order.OrderNumber</td>
-                                <td>@(order.Table != null ? order.Table.TableNumber : "Takeaway")</td>
-                                <td class="text-end fw-bold">$@order.GrandTotal.ToString("F2")</td>
-                                <td class="text-center">
-                                    <span class="badge @badgeClass px-2 py-1">@order.Status</span>
-                                </td>
+                                <th scope="col" class="ps-4">Ticket</th>
+                                <th scope="col">Table</th>
+                                <th scope="col" class="text-end">Total</th>
+                                <th scope="col" class="text-center">Status</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in recentOrders)
+                            {
+                                string badgeClass = order.Status switch
+                                {
+                                    RestaurantManagementSystem.Models.OrderStatus.Completed => "bg-success-subtle text-success border border-success-subtle",
+                                    RestaurantManagementSystem.Models.OrderStatus.Cancelled => "bg-danger-subtle text-danger border border-danger-subtle",
+                                    RestaurantManagementSystem.Models.OrderStatus.Preparing => "bg-warning-subtle text-warning border border-warning-subtle",
+                                    _ => "bg-secondary-subtle text-secondary border"
+                                };
+                                
+                                <tr>
+                                    <td class="ps-4 fw-semibold">@order.OrderNumber</td>
+                                    <td>@(order.Table != null ? order.Table.TableNumber : "Takeaway")</td>
+                                    <td class="text-end fw-bold">$@order.GrandTotal.ToString("F2")</td>
+                                    <td class="text-center">
+                                        <span class="badge @badgeClass px-2 py-1">@order.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted small">No orders recorded yet.</div>
+                }
             </div>
         </div>
     </div>
@@ -232,27 +239,34 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table align-middle mb-0">
-                    <thead class="table-light text-secondary small fw-bold" style="background-color: #f8fafc;">
-                        <tr>
-                            <th scope="col" class="ps-4">Expense Title</th>
-                            <th scope="col">Category</th>
-                            <th scope="col" class="text-end">Amount</th>
-                            <th scope="col" class="text-center">Logged Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var exp in recentExpenses)
-                        {
+                @if (recentExpenses != null && recentExpenses.Any())
+                {
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light text-secondary small fw-bold" style="background-color: #f8fafc;">
                             <tr>
-                                <td class="ps-4 fw-semibold text-truncate" style="max-width: 160px;">@exp.ExpenseName</td>
-                                <td><span class="badge bg-light text-dark">@exp.Category</span></td>
-                                <td class="text-end fw-bold text-danger">-$@exp.Amount.ToString("F2")</td>
-                                <td class="text-center text-muted small">@exp.Date.ToString("MM/dd")</td>
+                                <th scope="col" class="ps-4">Expense Title</th>
+                                <th scope="col">Category</th>
+                                <th scope="col" class="text-end">Amount</th>
+                                <th scope="col" class="text-center">Logged Date</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var exp in recentExpenses)
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-semibold text-truncate" style="max-width: 160px;">@exp.ExpenseName</td>
+                                    <td><span class="badge bg-light text-dark">@exp.Category</span></td>
+                                    <td class="text-end fw-bold text-danger">-$@exp.Amount.ToString("F2")</td>
+                                    <td class="text-center text-muted small">@exp.Date.ToString("MM/dd")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted small">No operational expenses logged yet.</div>
+                }
             </div>
         </div>
     </div>
