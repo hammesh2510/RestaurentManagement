@@ -360,7 +360,6 @@
                 success: function (res) {
                     hideSpinner();
                     if (res.success) {
-                        alert(`Order ${res.orderNumber} placed successfully!`);
                         location.href = '/Order/OrderBoard';
                     } else {
                         alert(res.message || "Failed to submit order.");
