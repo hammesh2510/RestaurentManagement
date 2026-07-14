@@ -57,24 +57,36 @@
     <div class="d-flex gap-2">
         @if (Model.Status == OrderStatus.Pending)
         {
-            <button onclick="advanceStatus(@Model.Id, 'Preparing')" class="btn btn-warning text-dark btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
-                <i class="fa-solid fa-play me-1"></i>Start Cooking
-            </button>
-            <button onclick="advanceStatus(@Model.Id, 'Cancelled')" class="btn btn-outline-danger btn-sm px-2.5 py-1.5" title="Cancel Order" style="border-radius: 6px;">
-                <i class="fa-solid fa-ban"></i>
-            </button>
+            @if (User.IsInRole("Manager") || User.IsInRole("Chef"))
+            {
+                <button onclick="advanceStatus(@Model.Id, 'Preparing')" class="btn btn-warning text-dark btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
+                    <i class="fa-solid fa-play me-1"></i>Start Cooking
+                </button>
+            }
+            @if (User.IsInRole("Manager") || User.IsInRole("Waiter"))
+            {
+                <button onclick="advanceStatus(@Model.Id, 'Cancelled')" class="btn btn-outline-danger btn-sm px-2.5 py-1.5" title="Cancel Order" style="border-radius: 6px;">
+                    <i class="fa-solid fa-ban"></i>
+                </button>
+            }
         }
         else if (Model.Status == OrderStatus.Preparing)
         {
-            <button onclick="advanceStatus(@Model.Id, 'Ready')" class="btn btn-success btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
-                <i class="fa-solid fa-utensils me-1"></i>Mark Ready
-            </button>
+            @if (User.IsInRole("Manager") || User.IsInRole("Chef"))
+            {
+                <button onclick="advanceStatus(@Model.Id, 'Ready')" class="btn btn-success btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
+                    <i class="fa-solid fa-utensils me-1"></i>Mark Ready
+                </button>
+            }
         }
         else if (Model.Status == OrderStatus.Ready)
         {
-            <button onclick="advanceStatus(@Model.Id, 'Served')" class="btn btn-primary btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
-                <i class="fa-solid fa-check me-1"></i>Mark Served
-            </button>
+            @if (User.IsInRole("Manager") || User.IsInRole("Waiter"))
+            {
+                <button onclick="advanceStatus(@Model.Id, 'Served')" class="btn btn-primary btn-sm flex-grow-1 font-weight-600 py-1.5" style="border-radius: 6px;">
+                    <i class="fa-solid fa-check me-1"></i>Mark Served
+                </button>
+            }
         }
         else if (Model.Status == OrderStatus.Served)
         {

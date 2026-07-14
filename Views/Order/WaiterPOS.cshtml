@@ -172,7 +172,55 @@
     <script>
         let cart = [];
 
+        function savePOSState() {
+            localStorage.setItem('rms_cart', JSON.stringify(cart));
+            localStorage.setItem('rms_order_type', $('#order-type').val());
+            localStorage.setItem('rms_table_id', $('#table-id').val() || '');
+            localStorage.setItem('rms_order_notes', $('#order-notes').val() || '');
+        }
+
+        function clearSavedPOSState() {
+            localStorage.removeItem('rms_cart');
+            localStorage.removeItem('rms_order_type');
+            localStorage.removeItem('rms_table_id');
+            localStorage.removeItem('rms_order_notes');
+        }
+
         $(document).ready(function() {
+            // Load saved state from localStorage
+            let savedCart = localStorage.getItem('rms_cart');
+            if (savedCart) {
+                try {
+                    cart = JSON.parse(savedCart);
+                } catch (e) {
+                    cart = [];
+                }
+            }
+
+            let savedOrderType = localStorage.getItem('rms_order_type');
+            if (savedOrderType !== null) {
+                $('#order-type').val(savedOrderType);
+            }
+
+            let savedTableId = localStorage.getItem('rms_table_id');
+            if (savedTableId !== null) {
+                $('#table-id').val(savedTableId);
+            }
+
+            let savedOrderNotes = localStorage.getItem('rms_order_notes');
+            if (savedOrderNotes !== null) {
+                $('#order-notes').val(savedOrderNotes);
+            }
+
+            if ($('#order-type').val() === '0') {
+                $('#table-select-col').show();
+            } else {
+                $('#table-select-col').hide();
+                $('#table-id').val('');
+            }
+
+            renderCart();
+
             // Synchronize Order Type changes hiding tables
             $('#order-type').on('change', function() {
                 if ($(this).val() === '0') {
@@ -181,12 +229,19 @@
                     $('#table-select-col').hide();
                     $('#table-id').val('');
                 }
+                savePOSState();
             });
+
+            $('#table-id').on('change', savePOSState);
+            $('#order-notes').on('input', savePOSState);
 
             @if (selectedTableId.HasValue)
             {
                 <text>
                 $('#table-id').val('@selectedTableId.Value');
+                $('#order-type').val('0'); // Force Dine-In
+                $('#table-select-col').show();
+                savePOSState();
                 </text>
             }
 
@@ -264,6 +319,7 @@
             if (confirm("Clear items from current order?")) {
                 cart = [];
                 renderCart();
+                clearSavedPOSState();
             }
         }
 
@@ -279,6 +335,7 @@
                 $('#summary-subtotal').text('$0.00');
                 $('#summary-tax').text('$0.00');
                 $('#summary-total').text('$0.00');
+                savePOSState();
                 return;
             }
 
@@ -324,12 +381,14 @@
             $('#summary-subtotal').text('$' + subtotal.toFixed(2));
             $('#summary-tax').text('$' + tax.toFixed(2));
             $('#summary-total').text('$' + total.toFixed(2));
+            savePOSState();
         }
 
         function updateItemNote(id, noteValue) {
             let item = cart.find(x => x.menuItemId === id);
             if (item) {
                 item.notes = noteValue;
+                savePOSState();
             }
         }
 
@@ -367,7 +426,8 @@
                 success: function (res) {
                     hideSpinner();
                     if (res.success) {
-                        location.href = '/Order/OrderBoard';
+                        clearSavedPOSState();
+                        location.href = '/Order/WaiterPOS';
                     } else {
                         alert(res.message || "Failed to submit order.");
                     }
@@ -375,6 +435,43 @@
                 error: function (xhr) {
                     hideSpinner();
                     alert("A communication error occurred while creating order.");
+                }
+            });
+        }
+
+        // Real-time table status sync using SignalR connection
+        if (typeof orderConnection !== 'undefined') {
+            orderConnection.on("OrderUpdated", function() {
+                reloadTablesDropdown();
+            });
+        }
+
+        function reloadTablesDropdown() {
+            $.ajax({
+                url: '/Order/GetTables',
+                type: 'GET',
+                dataType: 'json',
+                success: function (tables) {
+                    const select = $('#table-id');
+                    const currentValue = select.val();
+                    
+                    select.empty();
+                    select.append('<option value="">-- Choose --</option>');
+                    
+                    tables.forEach(function (table) {
+                        const statusTxt = table.statusText === "Available" ? "" : " (" + table.statusText + ")";
+                        const option = $('<option></option>')
+                            .val(table.id)
+                            .text(table.tableNumber + statusTxt);
+                        
+                        if (String(table.id) === String(currentValue)) {
+                            option.prop('selected', true);
+                        }
+                        select.append(option);
+                    });
+                },
+                error: function (err) {
+                    console.error("Unable to reload physical tables list:", err);
                 }
             });
         }

@@ -14,130 +14,120 @@
     
     <style>
         body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            background-color: #0f172a;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Inter', sans-serif;
-            color: #f8fafc;
-            overflow-x: hidden;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #f1f5f9;
+            margin: 0;
         }
 
         .login-container {
-            position: relative;
-            z-index: 10;
             width: 100%;
-            max-width: 450px;
-            padding: 15px;
+            max-width: 420px;
+            padding: 20px;
         }
 
         .login-card {
-            background: rgba(30, 41, 59, 0.45);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            padding: 40px 35px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .login-card:hover {
-            box-shadow: 0 15px 35px rgba(124, 58, 237, 0.2);
-            transform: translateY(-2px);
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+            padding: 40px 30px;
         }
 
         .brand-logo {
-            font-size: 2.5rem;
-            background: linear-gradient(45deg, #818cf8, #c084fc, #fb7185);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800;
-            letter-spacing: -1px;
+            font-size: 1.8rem;
+            color: #ffffff;
+            font-weight: 700;
             text-align: center;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
 
         .brand-subtitle {
             color: #94a3b8;
             font-size: 0.875rem;
             text-align: center;
-            margin-bottom: 35px;
+            margin-bottom: 30px;
+            font-weight: 500;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
 
         .form-control {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #f8fafc;
-            border-radius: 10px;
-            padding: 12px 16px;
-            transition: all 0.2s ease;
+            background-color: #0f172a;
+            border: 1px solid #475569;
+            color: #ffffff;
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
         }
 
         .form-control:focus {
-            background: rgba(15, 23, 42, 0.85);
-            border-color: #818cf8;
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25);
-            color: #f8fafc;
+            background-color: #0f172a;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.255);
+            color: #ffffff;
         }
 
         .form-label {
             color: #cbd5e1;
             font-size: 0.875rem;
-            font-weight: 500;
-            margin-left: 2px;
+            font-weight: 600;
+            margin-bottom: 6px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            border: none;
-            border-radius: 10px;
-            padding: 12px 20px;
+            background-color: #2563eb;
+            border: 1px solid #2563eb;
+            border-radius: 6px;
+            padding: 10px 20px;
             font-weight: 600;
-            letter-spacing: 0.5px;
-            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            transition: all 0.15s ease;
         }
 
         .btn-primary:hover {
-            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
-            transform: translateY(-1px);
+            background-color: #1d4ed8;
+            border-color: #1d4ed8;
         }
 
         .btn-primary:active {
-            transform: translateY(1px);
+            background-color: #1e40af;
+            border-color: #1e40af;
         }
 
         .form-check-input {
-            background-color: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background-color: #0f172a;
+            border: 1px solid #475569;
         }
 
         .form-check-input:checked {
-            background-color: #6366f1;
-            border-color: #6366f1;
+            background-color: #2563eb;
+            border-color: #2563eb;
         }
 
-        .text-muted-custom {
-            color: #94a3b8;
+        .text-link-custom {
+            color: #60a5fa;
             text-decoration: none;
-            font-size: 0.85rem;
-            transition: color 0.2s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
 
-        .text-muted-custom:hover {
-            color: #818cf8;
+        .text-link-custom:hover {
+            color: #93c5fd;
+            text-decoration: underline;
         }
 
         .validation-summary-errors {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 25px;
+            background-color: #7f1d1d;
+            border: 1px solid #991b1b;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
             color: #fca5a5;
             font-size: 0.875rem;
         }
@@ -148,46 +138,18 @@
         }
 
         .input-group-text-custom {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #334155;
+            border: 1px solid #475569;
             color: #94a3b8;
-            border-radius: 10px 0 0 10px;
+            border-radius: 6px 0 0 6px;
         }
 
         .input-with-icon {
-            border-radius: 0 10px 10px 0 !important;
-        }
-
-        /* Decorative background pulses */
-        .glow-sphere-1 {
-            position: absolute;
-            top: -10%;
-            left: -10%;
-            width: 300px;
-            height: 300px;
-            background: rgba(99, 102, 241, 0.15);
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: 1;
-        }
-
-        .glow-sphere-2 {
-            position: absolute;
-            bottom: -10%;
-            right: -10%;
-            width: 300px;
-            height: 300px;
-            background: rgba(217, 70, 239, 0.12);
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: 1;
+            border-radius: 0 6px 6px 0 !important;
         }
     </style>
 </head>
 <body>
-    <div class="glow-sphere-1"></div>
-    <div class="glow-sphere-2"></div>
-
     <div class="login-container">
         <div class="login-card">
             <div class="brand-logo">
@@ -207,7 +169,7 @@
                         <span class="input-group-text input-group-text-custom"><i class="fa-solid fa-envelope"></i></span>
                         <input asp-for="Email" class="form-control input-with-icon" placeholder="name@restaurant.com" autocomplete="username" />
                     </div>
-                    <span asp-validation-for="Email" class="text-danger small mt-1 d-block" style="color: #fca5a5 !important;"></span>
+                    <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
                 </div>
 
                 <div class="mb-4">
@@ -216,15 +178,14 @@
                         <span class="input-group-text input-group-text-custom"><i class="fa-solid fa-lock"></i></span>
                         <input asp-for="Password" class="form-control input-with-icon" placeholder="••••••••" autocomplete="current-password" />
                     </div>
-                    <span asp-validation-for="Password" class="text-danger small mt-1 d-block" style="color: #fca5a5 !important;"></span>
+                    <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div class="form-check">
                         <input asp-for="RememberMe" class="form-check-input" type="checkbox" />
-                        <label asp-for="RememberMe" class="form-check-label text-muted-custom"></label>
+                        <label asp-for="RememberMe" class="form-check-label text-secondary small"></label>
                     </div>
-                    <a href="#" class="text-muted-custom">Forgot Password?</a>
                 </div>
 
                 <button type="submit" class="btn btn-primary w-100 mb-3">
@@ -233,14 +194,8 @@
             </form>
             
             <div class="text-center mt-3">
-                <span class="text-muted" style="font-size: 0.9rem;">New Restaurant? </span>
-                <a asp-action="Register" asp-controller="Account" class="text-muted-custom fw-semibold">Sign Up</a>
-            </div>
-            
-            <div class="text-center mt-4">
-                <span class="text-muted text-secondary" style="font-size: 0.8rem;">
-                    Default Manager: manager@restaurant.com / Manager@123
-                </span>
+                <span class="text-secondary small">New Restaurant? </span>
+                <a asp-action="Register" asp-controller="Account" class="text-link-custom fw-semibold">Sign Up</a>
             </div>
         </div>
     </div>

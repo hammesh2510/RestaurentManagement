@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RestaurantManagementSystem.Data;
 using RestaurantManagementSystem.Models;
+using RestaurantManagementSystem.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 
 namespace RestaurantManagementSystem.Controllers
@@ -13,11 +15,13 @@ namespace RestaurantManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHubContext<OrderHub> _hubContext;
 
-        public TableController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public TableController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IHubContext<OrderHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
+            _hubContext = hubContext;
         }
 
         // GET: Table
@@ -182,6 +186,7 @@ namespace RestaurantManagementSystem.Controllers
 
             table.Status = status;
             await _context.SaveChangesAsync();
+            await _hubContext.Clients.All.SendAsync("OrderUpdated");
             return Json(new { success = true, message = $"Table status changed to {status}" });
         }
     }

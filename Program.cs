@@ -6,6 +6,7 @@ using RestaurantManagementSystem.Models;
 using RestaurantManagementSystem.Interfaces;
 using RestaurantManagementSystem.Repositories;
 using RestaurantManagementSystem.Services;
+using RestaurantManagementSystem.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,9 +35,22 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromDays(14);
     options.SlidingExpiration = true;
+    options.Events.OnValidatePrincipal = async context =>
+    {
+        if (context.Principal == null) return;
+        var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
+        var user = await userManager.GetUserAsync(context.Principal);
+        if (user == null || !user.IsActive)
+        {
+            context.RejectPrincipal();
+            var signInManager = context.HttpContext.RequestServices.GetRequiredService<SignInManager<ApplicationUser>>();
+            await signInManager.SignOutAsync();
+        }
+    };
 });
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -72,6 +86,8 @@ using (var scope = app.Services.CreateScope())
         logger.LogError(ex, "An error occurred while seeding the database.");
     }
 }
+
+app.MapHub<OrderHub>("/orderHub");
 
 app.MapControllerRoute(
     name: "default",

@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RestaurantManagementSystem.Data;
 using RestaurantManagementSystem.Models;
+using RestaurantManagementSystem.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,14 +18,17 @@ namespace RestaurantManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHubContext<OrderHub> _hubContext;
 
-        public OrderController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public OrderController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IHubContext<OrderHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
+            _hubContext = hubContext;
         }
 
         // GET: Order/WaiterPOS
+        [Authorize(Roles = "Manager,Waiter")]
         public async Task<IActionResult> WaiterPOS(int? tableId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -135,6 +140,10 @@ namespace RestaurantManagementSystem.Controllers
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
+            await _hubContext.Clients.All.SendAsync("OrderUpdated");
+
+            TempData["SuccessMessage"] = $"Order {order.OrderNumber} sent to kitchen!";
+
             return Json(new { success = true, orderId = order.Id, orderNumber = order.OrderNumber });
         }
 
@@ -163,6 +172,29 @@ namespace RestaurantManagementSystem.Controllers
             var userObj = await _userManager.GetUserAsync(User);
             var restaurantId = userObj?.RestaurantId ?? string.Empty;
 
+            // Validate backend authorization based on client status change request and user role
+            if (status == OrderStatus.Preparing || status == OrderStatus.Ready)
+            {
+                if (!User.IsInRole("Manager") && !User.IsInRole("Chef"))
+                {
+                    return Json(new { success = false, message = "Only managers and chefs can start cooking or mark orders as ready." });
+                }
+            }
+            else if (status == OrderStatus.Served)
+            {
+                if (!User.IsInRole("Manager") && !User.IsInRole("Waiter"))
+                {
+                    return Json(new { success = false, message = "Only managers and waiters can mark orders as served." });
+                }
+            }
+            else if (status == OrderStatus.Cancelled)
+            {
+                if (!User.IsInRole("Manager") && !User.IsInRole("Waiter"))
+                {
+                    return Json(new { success = false, message = "Only managers and waiters can cancel orders." });
+                }
+            }
+
             var order = await _context.Orders.Include(o => o.Table).FirstOrDefaultAsync(o => o.Id == id && o.RestaurantId == restaurantId);
             if (order == null)
             {
@@ -179,6 +211,7 @@ namespace RestaurantManagementSystem.Controllers
             }
 
             await _context.SaveChangesAsync();
+            await _hubContext.Clients.All.SendAsync("OrderUpdated");
             return Json(new { success = true, message = $"Order status updated to {status}" });
         }
 
@@ -285,8 +318,32 @@ namespace RestaurantManagementSystem.Controllers
             _context.Update(order);
             await _context.SaveChangesAsync();
 
+            await _hubContext.Clients.All.SendAsync("OrderUpdated");
+
             TempData["SuccessMessage"] = $"Order {order.OrderNumber} checkout completed, table marked as cleaning!";
             return RedirectToAction("TableActivities", "Manager");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Manager,Waiter")]
+        public async Task<IActionResult> GetTables()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var restaurantId = user?.RestaurantId ?? string.Empty;
+
+            var tables = await _context.RestaurantTables
+                .Where(t => t.RestaurantId == restaurantId)
+                .OrderBy(t => t.TableNumber)
+                .Select(t => new
+                {
+                    id = t.Id,
+                    tableNumber = t.TableNumber,
+                    status = (int)t.Status,
+                    statusText = t.Status.ToString()
+                })
+                .ToListAsync();
+
+            return Json(tables);
         }
     }
 

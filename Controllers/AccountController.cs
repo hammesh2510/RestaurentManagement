@@ -127,15 +127,12 @@ namespace RestaurantManagementSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Register()
+        public IActionResult Register()
         {
             if (_signInManager.IsSignedIn(User))
             {
                 return RedirectToAction("Index", "Home");
             }
-
-            var managers = await _userManager.GetUsersInRoleAsync("Manager");
-            ViewBag.Managers = managers.Select(m => new { m.Id, m.FullName, m.Email }).ToList();
 
             return View();
         }
@@ -144,22 +141,33 @@ namespace RestaurantManagementSystem.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
+            if (model.Role != "Manager")
+            {
+                if (string.IsNullOrEmpty(model.SelectedManagerId))
+                {
+                    ModelState.AddModelError("SelectedManagerId", "Manager's Referral Email is required.");
+                }
+                else
+                {
+                    var manager = await _userManager.FindByEmailAsync(model.SelectedManagerId);
+                    if (manager == null || !await _userManager.IsInRoleAsync(manager, "Manager"))
+                    {
+                        ModelState.AddModelError("SelectedManagerId", "A manager with this email address was not found.");
+                    }
+                    else
+                    {
+                        // Map SelectedManagerId to manager's database Id
+                        model.SelectedManagerId = manager.Id;
+                    }
+                }
+            }
+
             if (ModelState.IsValid)
             {
-                if (model.Role != "Manager" && string.IsNullOrEmpty(model.SelectedManagerId))
-                {
-                    ModelState.AddModelError("SelectedManagerId", "Please select a Manager / Restaurant Location.");
-                    var managersList = await _userManager.GetUsersInRoleAsync("Manager");
-                    ViewBag.Managers = managersList.Select(m => new { m.Id, m.FullName, m.Email }).ToList();
-                    return View(model);
-                }
-
                 var existingUser = await _userManager.FindByEmailAsync(model.Email);
                 if (existingUser != null)
                 {
                     ModelState.AddModelError("Email", "Email address is already in use.");
-                    var managersList = await _userManager.GetUsersInRoleAsync("Manager");
-                    ViewBag.Managers = managersList.Select(m => new { m.Id, m.FullName, m.Email }).ToList();
                     return View(model);
                 }
 
@@ -167,8 +175,6 @@ namespace RestaurantManagementSystem.Controllers
                 if (!validRoles.Contains(model.Role))
                 {
                     ModelState.AddModelError("Role", "Invalid role selected.");
-                    var managersList = await _userManager.GetUsersInRoleAsync("Manager");
-                    ViewBag.Managers = managersList.Select(m => new { m.Id, m.FullName, m.Email }).ToList();
                     return View(model);
                 }
 
@@ -221,8 +227,92 @@ namespace RestaurantManagementSystem.Controllers
                 }
             }
 
-            var fallbackManagers = await _userManager.GetUsersInRoleAsync("Manager");
-            ViewBag.Managers = fallbackManagers.Select(m => new { m.Id, m.FullName, m.Email }).ToList();
+            return View(model);
+        }
+
+        // GET: Account/Profile
+        [HttpGet]
+        public async Task<IActionResult> Profile()
+        {
+            if (!_signInManager.IsSignedIn(User))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var userObj = await _userManager.GetUserAsync(User);
+            if (userObj == null)
+            {
+                return NotFound();
+            }
+
+            var roles = await _userManager.GetRolesAsync(userObj);
+            var userRole = roles.FirstOrDefault() ?? "Staff";
+
+            // Find matching employee details
+            var employee = _context.Employees.FirstOrDefault(e => e.UserId == userObj.Id);
+
+            var model = new ProfileViewModel
+            {
+                Email = userObj.Email!,
+                FullName = userObj.FullName,
+                Phone = employee?.Phone ?? userObj.PhoneNumber ?? string.Empty,
+                Role = userRole
+            };
+
+            return View(model);
+        }
+
+        // POST: Account/Profile
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Profile(ProfileViewModel model)
+        {
+            if (!_signInManager.IsSignedIn(User))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var userObj = await _userManager.GetUserAsync(User);
+            if (userObj == null)
+            {
+                return NotFound();
+            }
+
+            var roles = await _userManager.GetRolesAsync(userObj);
+            model.Role = roles.FirstOrDefault() ?? "Staff";
+            model.Email = userObj.Email!; // Prevent tampering with email
+
+            if (ModelState.IsValid)
+            {
+                userObj.FullName = model.FullName;
+                userObj.PhoneNumber = model.Phone;
+
+                var result = await _userManager.UpdateAsync(userObj);
+                if (result.Succeeded)
+                {
+                    // Also update linked Employee entity
+                    var employee = _context.Employees.FirstOrDefault(e => e.UserId == userObj.Id);
+                    if (employee != null)
+                    {
+                        var names = model.FullName.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                        employee.FirstName = names.Length > 0 ? names[0] : model.FullName;
+                        employee.LastName = names.Length > 1 ? names[1] : "Employee";
+                        employee.Phone = model.Phone;
+
+                        _context.Employees.Update(employee);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    TempData["SuccessMessage"] = "Your profile has been updated successfully!";
+                    return RedirectToAction("Profile");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+
             return View(model);
         }
     }

@@ -32,6 +32,41 @@ namespace RestaurantManagementSystem.Data
             // Make sure the changes are committed before adding other data
             await context.SaveChangesAsync();
 
+            // Seed Employees for the users if they don't exist
+            if (!context.Employees.Any(e => e.Email == "waiter@restaurant.com"))
+            {
+                var employee = new Employee
+                {
+                    FirstName = "John",
+                    LastName = "Waiter",
+                    Email = "waiter@restaurant.com",
+                    Phone = "123-456-7890",
+                    Salary = 1500.00m,
+                    HireDate = DateTime.UtcNow,
+                    IsActive = true,
+                    UserId = waiterUser.Id
+                };
+                context.Employees.Add(employee);
+            }
+
+            if (!context.Employees.Any(e => e.Email == "chef@restaurant.com"))
+            {
+                var employee = new Employee
+                {
+                    FirstName = "Gordon",
+                    LastName = "Chef",
+                    Email = "chef@restaurant.com",
+                    Phone = "987-654-3210",
+                    Salary = 2500.00m,
+                    HireDate = DateTime.UtcNow,
+                    IsActive = true,
+                    UserId = chefUser.Id
+                };
+                context.Employees.Add(employee);
+            }
+
+            await context.SaveChangesAsync();
+
             // 3. Seed Categories
             if (!context.Categories.Any())
             {

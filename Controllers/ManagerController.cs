@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RestaurantManagementSystem.Data;
 using RestaurantManagementSystem.Models;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,10 +15,12 @@ namespace RestaurantManagementSystem.Controllers
     public class ManagerController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ManagerController(ApplicationDbContext context)
+        public ManagerController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Manager/Dashboard
@@ -180,6 +184,108 @@ namespace RestaurantManagementSystem.Controllers
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Expense deleted successfully!";
             return RedirectToAction(nameof(Expenses));
+        }
+
+        // GET: Manager/Staff
+        public async Task<IActionResult> Staff()
+        {
+            var userObj = await _userManager.GetUserAsync(User);
+            var restaurantId = userObj?.RestaurantId ?? string.Empty;
+
+            var staffList = await _context.Employees
+                .Include(e => e.User)
+                .Where(e => e.User!.RestaurantId == restaurantId && e.UserId != userObj!.Id)
+                .ToListAsync();
+
+            var staffRoles = new Dictionary<string, string>();
+            foreach (var emp in staffList)
+            {
+                if (emp.User != null)
+                {
+                    var roles = await _userManager.GetRolesAsync(emp.User);
+                    staffRoles[emp.UserId!] = roles.FirstOrDefault() ?? "Staff";
+                }
+            }
+
+            ViewBag.StaffRoles = staffRoles;
+
+            return View(staffList);
+        }
+
+        // POST: Manager/ToggleStaffStatus/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleStaffStatus(string id)
+        {
+            var userObj = await _userManager.GetUserAsync(User);
+            var restaurantId = userObj?.RestaurantId ?? string.Empty;
+
+            var staffUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == id && u.RestaurantId == restaurantId && u.Id != userObj!.Id);
+            if (staffUser == null)
+            {
+                return Json(new { success = false, message = "Staff member not found or unauthorized." });
+            }
+
+            // Toggle active status
+            staffUser.IsActive = !staffUser.IsActive;
+
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserId == id);
+            if (employee != null)
+            {
+                employee.IsActive = staffUser.IsActive;
+                _context.Update(employee);
+            }
+
+            _context.Update(staffUser);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, isActive = staffUser.IsActive, message = $"Staff status successfully updated to {(staffUser.IsActive ? "Active" : "Inactive")}." });
+        }
+
+        // POST: Manager/DeleteStaff/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteStaff(string id)
+        {
+            var userObj = await _userManager.GetUserAsync(User);
+            var restaurantId = userObj?.RestaurantId ?? string.Empty;
+
+            var staffUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == id && u.RestaurantId == restaurantId && u.Id != userObj!.Id);
+            if (staffUser == null)
+            {
+                TempData["ErrorMessage"] = "Staff member not found or unauthorized.";
+                return RedirectToAction(nameof(Staff));
+            }
+
+            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.UserId == id);
+
+            // Check if user has historical orders before executing delete
+            var hasOrders = await _context.Orders.AnyAsync(o => o.CreatedByUserId == id);
+            if (hasOrders)
+            {
+                // Has historical orders, cannot delete but we permanently deactivate
+                staffUser.IsActive = false;
+                if (employee != null)
+                {
+                    employee.IsActive = false;
+                    _context.Update(employee);
+                }
+                _context.Update(staffUser);
+                await _context.SaveChangesAsync();
+
+                TempData["WarningMessage"] = $"Staff member '{staffUser.FullName}' has historical order records and cannot be permanently deleted. Their login account has been deactivated instead.";
+                return RedirectToAction(nameof(Staff));
+            }
+
+            if (employee != null)
+            {
+                _context.Employees.Remove(employee);
+            }
+            _context.Users.Remove(staffUser);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Staff member account permanently deleted.";
+            return RedirectToAction(nameof(Staff));
         }
     }
 }

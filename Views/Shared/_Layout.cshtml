@@ -219,6 +219,18 @@
             color: var(--text-muted);
         }
 
+        /* Dropdown custom settings */
+        .dropdown {
+            position: relative;
+        }
+        .dropdown-menu-end {
+            right: 0;
+            left: auto;
+        }
+        .dropdown-menu.show {
+            display: block !important;
+        }
+
         /* Loading Spinner */
         #loading-overlay {
             position: fixed;
@@ -380,6 +392,12 @@
                         <i class="fa-solid fa-file-invoice-dollar"></i><span>Expenses Ledger</span>
                     </a>
                 </li>
+
+                <li class="menu-item">
+                    <a asp-controller="Manager" asp-action="Staff" class="menu-link" id="nav-staff">
+                        <i class="fa-solid fa-users-gear"></i><span>Manage Staff</span>
+                    </a>
+                </li>
             }
         </ul>
 
@@ -421,7 +439,7 @@
                         </span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm" aria-labelledby="profileDropdown" style="background-color: #ffffff;">
-                        <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-user me-2 text-muted"></i>My Profile</a></li>
+                        <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Profile"><i class="fa-solid fa-user me-2 text-muted"></i>My Profile</a></li>
                         <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-gear me-2 text-muted"></i>Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
@@ -504,6 +522,45 @@
                 $('#nav-categories').addClass('active');
             } else if (currentPath === '/' || currentPath.indexOf('/home') !== -1) {
                 $('#nav-dashboard').addClass('active');
+            } else if (currentPath.indexOf('/manager/staff') !== -1) {
+                $('#nav-staff').addClass('active');
+            }
+
+            // Profile Dropdown Toggle Manual Fallback
+            $('#profileDropdown').on('click', function (e) {
+                e.stopPropagation();
+                $(this).next('.dropdown-menu').toggleClass('show');
+            });
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('#profileDropdown').length) {
+                    $('.dropdown-menu').removeClass('show');
+                }
+            });
+        });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script>
+        const orderConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/orderHub")
+            .withAutomaticReconnect()
+            .build();
+
+        orderConnection.start()
+            .then(function() {
+                console.debug("SignalR Connection established.");
+            })
+            .catch(function(err) {
+                console.error("SignalR Connection failed: " + err.toString());
+            });
+
+        orderConnection.on("OrderUpdated", function() {
+            const path = window.location.pathname.toLowerCase();
+            if (path.indexOf("/orderboard") !== -1 || 
+                path.indexOf("/dashboard") !== -1 || 
+                path.indexOf("/tableactivities") !== -1 ||
+                path === "/" ||
+                path.indexOf("/home") !== -1) {
+                location.reload();
             }
         });
     </script>
