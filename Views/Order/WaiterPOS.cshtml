@@ -54,21 +54,20 @@
                          data-category="@item.CategoryId"
                          data-isveg="@(item.IsVeg ? "true" : "false")">
                         <div class="card border border-light h-100 shadow-hover p-2.5 d-flex flex-column justify-content-between position-relative" style="border-radius: 12px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; background-color: #ffffff;">
-                            
-                            <!-- Recommended badge -->
-                            @if (item.IsRecommended)
-                            {
-                                <span class="position-absolute badge bg-warning text-dark px-2 py-1" style="top: 8px; right: 8px; z-index: 5; font-size: 0.68rem; border-radius: 4px; font-weight: 700;">
-                                    ⭐ REC
-                                </span>
-                            }
-
                             <div>
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="badge border @vegBadgeColor px-2 py-0.5" style="font-size: 0.65rem; font-weight: 800;">
-                                        @vegBadgeText
-                                    </span>
-                                    <span class="fw-bold text-indigo" style="font-size: 1.05rem;">$@item.Price.ToString("F2")</span>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="badge border @vegBadgeColor px-2 py-0.5" style="font-size: 0.65rem; font-weight: 800;">
+                                            @vegBadgeText
+                                        </span>
+                                        @if (item.IsRecommended)
+                                        {
+                                            <span class="badge bg-warning text-dark px-2 py-0.5" style="font-size: 0.65rem; font-weight: 800; border-radius: 4px;">
+                                                ⭐ REC
+                                            </span>
+                                        }
+                                    </div>
+                                    <span class="fw-bold text-indigo" style="font-size: 1.05rem;">₹@item.Price.ToString("F2")</span>
                                 </div>
                                 <h6 class="fw-bold text-slate-800 mb-1">@item.Name</h6>
                                 <p class="text-muted small text-truncate-2 mb-3" style="font-size: 0.75rem; min-height: 32px;">@item.Description</p>
@@ -149,15 +148,15 @@
             <div class="p-3 bg-light border-top">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="text-muted small">Subtotal</span>
-                    <span class="fw-semibold text-slate-800" id="summary-subtotal">$0.00</span>
+                    <span class="fw-semibold text-slate-800" id="summary-subtotal">₹0.00</span>
                 </div>
                 <div class="d-flex justify-content-between mb-3">
                     <span class="text-muted small">Tax (10.0%)</span>
-                    <span class="fw-semibold text-slate-800" id="summary-tax">$0.00</span>
+                    <span class="fw-semibold text-slate-800" id="summary-tax">₹0.00</span>
                 </div>
                 <div class="d-flex justify-content-between border-top pt-2 mb-3">
                     <span class="fw-bold">Grand Total</span>
-                    <span class="fw-bold text-indigo" id="summary-total" style="font-size: 1.15rem;">$0.00</span>
+                    <span class="fw-bold text-indigo" id="summary-total" style="font-size: 1.15rem;">₹0.00</span>
                 </div>
 
                 <button class="btn btn-primary w-100 py-2.5 fw-bold" id="place-order-btn" onclick="submitOrder()" disabled style="border-radius: 10px;">
@@ -332,9 +331,9 @@
                 $('#cart-table').addClass('d-none');
                 $('#place-order-btn').attr('disabled', true);
                 
-                $('#summary-subtotal').text('$0.00');
-                $('#summary-tax').text('$0.00');
-                $('#summary-total').text('$0.00');
+                $('#summary-subtotal').text('₹0.00');
+                $('#summary-tax').text('₹0.00');
+                $('#summary-total').text('₹0.00');
                 savePOSState();
                 return;
             }
@@ -353,7 +352,7 @@
                     <tr class="border-bottom border-light">
                         <td style="width: 55%; font-size: 0.85rem;">
                             <div class="fw-bold text-slate-800">${item.name}</div>
-                            <div class="text-muted small">$${item.price.toFixed(2)} each</div>
+                            <div class="text-muted small">₹${item.price.toFixed(2)} each</div>
                             <input type="text" class="form-control form-control-xs mt-1 w-100 text-muted" 
                                    placeholder="Add note..." value="${item.notes}" 
                                    style="font-size: 0.7rem; padding: 2px 4px; border-radius: 4px;" 
@@ -367,7 +366,7 @@
                             </div>
                         </td>
                         <td style="width: 15%; font-size: 0.85rem;" class="text-end fw-bold text-slate-700">
-                            $${itemTotal.toFixed(2)}
+                            ₹${itemTotal.toFixed(2)}
                             <button class="btn btn-xs btn-link text-danger p-0 mt-1 d-block ms-auto" onclick="removeFromCart(${item.menuItemId})" style="font-size: 0.72rem; text-decoration: none;">Remove</button>
                         </td>
                     </tr>
@@ -378,9 +377,9 @@
             let tax = Math.round(subtotal * 0.10 * 100) / 100;
             let total = subtotal + tax;
 
-            $('#summary-subtotal').text('$' + subtotal.toFixed(2));
-            $('#summary-tax').text('$' + tax.toFixed(2));
-            $('#summary-total').text('$' + total.toFixed(2));
+            $('#summary-subtotal').text('₹' + subtotal.toFixed(2));
+            $('#summary-tax').text('₹' + tax.toFixed(2));
+            $('#summary-total').text('₹' + total.toFixed(2));
             savePOSState();
         }
 

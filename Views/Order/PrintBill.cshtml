@@ -120,7 +120,7 @@
                         }
                     </div>
                     <div class="col-2 text-center">@item.Quantity</div>
-                    <div class="col-3 text-end">$@total.ToString("F2")</div>
+                    <div class="col-3 text-end">₹@total.ToString("F2")</div>
                 </div>
             }
         </div>
@@ -131,22 +131,22 @@
         <div class="small">
             <div class="row">
                 <div class="col-8 text-end text-muted">Sub Total:</div>
-                <div class="col-4 text-end">$@Model.SubTotal.ToString("F2")</div>
+                <div class="col-4 text-end">₹@Model.SubTotal.ToString("F2")</div>
             </div>
             <div class="row mt-1">
                 <div class="col-8 text-end text-muted">Tax (10.0%):</div>
-                <div class="col-4 text-end">$@Model.TaxAmount.ToString("F2")</div>
+                <div class="col-4 text-end">₹@Model.TaxAmount.ToString("F2")</div>
             </div>
             @if (Model.DiscountAmount > 0)
             {
                 <div class="row mt-1 text-danger">
                     <div class="col-8 text-end">Discount Applied:</div>
-                    <div class="col-4 text-end">-$@Model.DiscountAmount.ToString("F2")</div>
+                    <div class="col-4 text-end">-₹@Model.DiscountAmount.ToString("F2")</div>
                 </div>
             }
             <div class="row mt-2 fw-bold" style="font-size: 1.05rem;">
                 <div class="col-8 text-end">GRAND TOTAL:</div>
-                <div class="col-4 text-end">$@Model.GrandTotal.ToString("F2")</div>
+                <div class="col-4 text-end">₹@Model.GrandTotal.ToString("F2")</div>
             </div>
         </div>
 

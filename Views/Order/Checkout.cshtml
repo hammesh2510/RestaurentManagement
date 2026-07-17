@@ -40,9 +40,9 @@
                             var total = item.Price * item.Quantity;
                             <tr class="border-bottom border-light">
                                 <td class="fw-semibold text-slate-800">@item.MenuItem?.Name</td>
-                                <td class="text-center">$@item.Price.ToString("F2")</td>
+                                <td class="text-center">₹@item.Price.ToString("F2")</td>
                                 <td class="text-center">@item.Quantity</td>
-                                <td class="text-end fw-bold">$@total.ToString("F2")</td>
+                                <td class="text-end fw-bold">₹@total.ToString("F2")</td>
                             </tr>
                         }
                     </tbody>
@@ -51,19 +51,19 @@
                 <div class="d-flex flex-column gap-2 pt-3">
                     <div class="d-flex justify-content-between">
                         <span class="text-muted">Sub Total:</span>
-                        <span class="fw-bold text-slate-800" id="raw-subtotal" data-value="@Model.SubTotal">$@Model.SubTotal.ToString("F2")</span>
+                        <span class="fw-bold text-slate-800" id="raw-subtotal" data-value="@Model.SubTotal">₹@Model.SubTotal.ToString("F2")</span>
                     </div>
                     <div class="d-flex justify-content-between">
                         <span class="text-muted">Tax (10.0%):</span>
-                        <span class="fw-bold text-slate-700" id="raw-tax" data-value="@Model.TaxAmount">$@Model.TaxAmount.ToString("F2")</span>
+                        <span class="fw-bold text-slate-700" id="raw-tax" data-value="@Model.TaxAmount">₹@Model.TaxAmount.ToString("F2")</span>
                     </div>
                     <div class="d-flex justify-content-between d-none" id="discount-display-row">
                         <span class="text-danger">Discount Applied:</span>
-                        <span class="fw-bold text-danger" id="discount-display-val">-$0.00</span>
+                        <span class="fw-bold text-danger" id="discount-display-val">-₹0.00</span>
                     </div>
                     <div class="d-flex justify-content-between border-top pt-2 mt-2">
                         <span class="h5 fw-bold mb-0">payable Total:</span>
-                        <span class="h5 fw-bold text-indigo mb-0" id="checkout-payable-total" data-base="@(Model.SubTotal + Model.TaxAmount)">$@Model.GrandTotal.ToString("F2")</span>
+                        <span class="h5 fw-bold text-indigo mb-0" id="checkout-payable-total" data-base="@(Model.SubTotal + Model.TaxAmount)">₹@Model.GrandTotal.ToString("F2")</span>
                     </div>
                 </div>
             </div>
@@ -83,12 +83,12 @@
 
                     <!-- Discount amount adjustment -->
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-slate-700">Apply Discount ($)</label>
+                        <label class="form-label fw-semibold text-slate-700">Apply Discount (₹)</label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text">₹</span>
                             <input type="number" id="DiscountAmount" name="discountAmount" class="form-control" min="0" max="@Model.SubTotal" step="0.01" value="0.00" />
                         </div>
-                        <small class="text-muted">Max discount allowed: $@Model.SubTotal.ToString("F2")</small>
+                        <small class="text-muted">Max discount allowed: ₹@Model.SubTotal.ToString("F2")</small>
                     </div>
 
                     <!-- Payment methods switches -->
@@ -154,7 +154,7 @@
                 // Show discount row
                 if (disc > 0) {
                     $('#discount-display-row').removeClass('d-none');
-                    $('#discount-display-val').text('-$' + disc.toFixed(2));
+                    $('#discount-display-val').text('-₹' + disc.toFixed(2));
                 } else {
                     $('#discount-display-row').addClass('d-none');
                 }
@@ -165,7 +165,7 @@
                 let newTotal = (subVal - disc) + taxVal;
                 if (newTotal < 0) newTotal = 0;
 
-                $('#checkout-payable-total').text('$' + newTotal.toFixed(2));
+                $('#checkout-payable-total').text('₹' + newTotal.toFixed(2));
             });
 
             // Toggle transaction input visibility based on card/upi payment choices
